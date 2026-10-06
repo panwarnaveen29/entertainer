@@ -887,7 +887,7 @@ function renderHeaderRes(r){
   const showBook = [...r.inS,...r.outS].some(x=>x.m.reserve==='instant') || S.bookable;
   $('#filters').innerHTML=
     `<button class="fchip ${S.sort!=='relevance'?'on':''}" data-act="filters">${ICON.sliders}Filters${ICON.chev}</button>`+
-    `<button class="fchip ${S.rating?'on':''}" data-act="rating">${ICON.check}${ICON.star} 4.5+</button>`+
+    `<button class="fchip ${S.rating?'on':''}" data-act="rating">${ICON.check}<span class="rate-ic">😁</span> 4.5+</button>`+
     (showBook?`<button class="fchip ${S.bookable?'on':''}" data-act="bookable">${ICON.check}Live availability</button>`:'')+
     tags.map(t=>`<button class="fchip ${S.filters.has(t)?'on':''}" data-act="tag" data-t="${esc(t)}">${ICON.check}${esc(t)}</button>`).join('');
   // tabs
@@ -1052,7 +1052,7 @@ function openSort(){
 /* ---------------- filters sheet (sidebar + panel) ---------------- */
 const FCATS=['sort','scope','cuisines','rating','redeem'];
 const FLABEL={sort:'Sort by',scope:'Location',cuisines:'Cuisines',rating:'Rating',redeem:'Redemption'};
-const FICON={sort:ICON.sliders,scope:ICON.pin,cuisines:ICON.tag,rating:ICON.star,redeem:ICON.bolt};
+const FICON={sort:ICON.sliders,scope:ICON.pin,cuisines:ICON.tag,rating:'<span class="rate-ic">😁</span>',redeem:ICON.bolt};
 let fTab='sort';
 const fActive={sort:()=>S.sort!=='relevance',scope:()=>false,cuisines:()=>S.filters.size>0,rating:()=>S.rating,redeem:()=>S.bookable};
 function openFilters(tab){ fTab=tab||'sort'; renderFilters(); }
