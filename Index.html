@@ -255,8 +255,6 @@ mark{background:none;color:var(--ink);font-weight:700}
 .heart.on svg path{fill:currentColor}
 .cmore{display:flex;align-items:center;gap:4px;flex:none;font-size:12.5px;font-weight:600;color:var(--blue);white-space:nowrap;padding:6px 0}
 .cmore svg{transition:transform .3s var(--ease)}
-.cmore.open svg{transform:rotate(180deg)}
-.outlets{padding:0}
 .outlet{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px dashed var(--line);font-size:13px;text-align:left;transition:background .12s}
 .outlet:first-child{border-top:0}
 .outlet:active{background:var(--chip)}
@@ -266,6 +264,9 @@ mark{background:none;color:var(--ink);font-weight:700}
 .outlet.dim .o-n{color:var(--muted)}
 .outlet .o-arrow{flex:none;color:var(--faint)}
 .outlet .o-arrow svg{width:13px;height:13px;display:block}
+.outlet.on{color:var(--blue)}
+.outlet.on .o-n{color:var(--blue);font-weight:650}
+.outlet.on svg{color:var(--blue)}
 .outside-btn{display:flex;align-items:center;gap:10px;width:100%;margin:18px 0 10px;font-size:13px;font-weight:600;color:var(--ink-2)}
 .outside-btn::before,.outside-btn::after{content:"";flex:1;height:1px;background:var(--line)}
 .outside-btn span{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
@@ -679,7 +680,7 @@ const SCOPE_SUB={near:'Within 10 km of you',dubai:'Your city',uae:'Every emirate
 const SCOPE_INLINE={near:'near you',dubai:'in Dubai',uae:'in the UAE',world:'worldwide'};
 const SORTS={relevance:'Best match',nearest:'Distance',rating:'Rating',newest:'Newest'};
 const S = {mode:'idle',q:'',scope:'dubai',sort:'relevance',tab:'all',rating:false,filters:new Set(),bookable:false,view:'list',
-  recents:['Pizza','marina','Dubai Mall'],saved:new Set(),showOutside:false,open:new Set(),tagChips:[],pin:0,lastCount:null,outletSel:{}};
+  recents:['Pizza','marina','Dubai Mall'],saved:new Set(),showOutside:false,tagChips:[],pin:0,lastCount:null,outletSel:{}};
 const rank = s=>SCOPES.indexOf(s);
 const scopeOf = o=>o.city==='Maldives'?'world':o.city!=='Dubai'?'uae':o.km<=10?'near':'dubai';
 const inScope = o=>rank(scopeOf(o))<=rank(S.scope);
@@ -860,7 +861,7 @@ let toastMsg=null;
 function submit(q,opts={}){
   S.q=(q??input.value).trim(); input.value=S.q; syncField(); input.blur();
   if(S.q){ S.recents=[S.q,...S.recents.filter(r=>norm(r)!==norm(S.q))].slice(0,6); }
-  S.filters.clear(); S.rating=false; S.bookable=false; S.showOutside=false; S.sort=opts.sort||'relevance'; S.open.clear(); S.pin=0;
+  S.filters.clear(); S.rating=false; S.bookable=false; S.showOutside=false; S.sort=opts.sort||'relevance'; S.pin=0;
   if(opts.scope) S.scope=opts.scope;
   if(opts.view) S.view=opts.view; else if(!opts.keepView) S.view='list';
   const p=parse(S.q);
@@ -903,15 +904,10 @@ function moveInd(){ const on=$('#tabs .tab.on'), ind=$('#tabInd'); if(!on||!ind)
 
 function card(x,i,p,opts={}){
   const m=x.m, near=x.shown, others=(x.inOuts.length?x.outs:x.outs);
-  const open=S.open.has(m.id);
   const moreN=others.length-1;
-  // a merchant can have dozens of outlets. List three, then hand off to the map
-  // rather than turning the card into a scroll of outlet rows.
-  const shown=others.filter(o=>o.k!==near.k).slice(0,3), hiddenN=moreN-shown.length;
   const flag=m.reserve==='instant'?`<span class="dot">·</span><b class="f-live">Live booking</b>`
     :m.reserve==='call'?`<span class="dot">·</span><b class="f-call">Call ahead</b>`:'';
-  const moreBtn=moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>`:'';
-  const moreCollapse=moreN>0&&!opts.compact?`<div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="pickoutlet" data-id="${m.id}" data-k="${o.k}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span><span class="o-arrow">${ICON.arrow}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span><span class="o-arrow">${ICON.arrow}</span></button>`:''}</div></div></div>`:'';
+  const moreBtn=moreN>0&&!opts.compact?`<button class="cmore" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''} ${ICON.chev}</button>`:'';
 
   // Every result reads the same way: a photo banner, name, rating, offer,
   // distance. Rank is the signal. The best result is simply first, the way
@@ -930,7 +926,6 @@ function card(x,i,p,opts={}){
         <div class="cline2"><span class="cline2-txt">${fmtKm(near.km)}<span class="dot">·</span>${esc(near.name)}</span>${moreBtn}</div>
       </div>
     </div>
-    ${moreCollapse}
   </article>`;
 
   return `<article class="card compact ${opts.noAnim?'':'anim'}" style="--i:${i}">
@@ -944,7 +939,6 @@ function card(x,i,p,opts={}){
     </div>
     <span class="b-rate"><span class="rate-ic">😁</span> ${m.rating}</span>
     <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
-    ${moreCollapse}
   </article>`;
 }
 
@@ -1045,6 +1039,14 @@ function openMerchant(id){
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   (function step(t){ const k=reduce?1:Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-k,3); el.textContent=Math.round(target*e).toLocaleString('en-US'); if(k<1) requestAnimationFrame(step); })(t0);
 }
+function openOutlets(id){
+  const m=BYID[id];
+  const outs=m.out.map(k=>({k,...AREA[k]})).sort((a,b)=>a.km-b.km);
+  const picked=S.outletSel[id];
+  openSheet(`<div class="sheet-title">${esc(m.name)}</div>
+    <div class="sh-sec">${outs.map(o=>`<button class="outlet ${inScope(o)?'':'dim'} ${o.k===(picked||outs[0].k)?'on':''}" data-act="pickoutlet" data-id="${id}" data-k="${o.k}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}</div>
+    <button class="outlet" data-act="view"><span style="color:var(--muted);display:flex">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}</span><span class="o-n">View all ${outs.length} on map</span><span class="o-arrow">${ICON.arrow}</span></button>`);
+}
 function openScope(){
   const c=S._scopeCounts||[];
   openSheet(`<div class="sheet-title">Search in</div>${SCOPES.map((s,i)=>`<button class="opt ${S.scope===s?'on':''}" data-act="setscope" data-v="${s}"><span class="radio"></span><span class="t">${SCOPE[s]}<small>${SCOPE_SUB[s]}</small></span><span class="cnt">${c[i]??''} results</span></button>`).join('')}`);
@@ -1126,13 +1128,14 @@ document.addEventListener('click',e=>{
       setTimeout(()=>{ const s=$('#recentSec'); if(s) s.classList.add('shut'); },chips.length*45+200);
       setTimeout(()=>{ S.recents=[]; },chips.length*45+600); break; }
     case 'view':
+      closeSheet();
       if(S.mode!=='results'){ input.value=''; S.q=''; submit('',{scope:'near',view:'map'}); }
       else { S.view=S.view==='map'?'list':'map'; S.pin=0; renderResults(true); }
       break;
     case 'open': openMerchant(d.id); break;
     case 'heart': { if(S.saved.has(d.id)){ S.saved.delete(d.id); el.classList.remove('on'); } else { S.saved.add(d.id); el.classList.add('on'); toast(`${ICON.heart.replace('stroke-width="2"','stroke-width="2" fill="#E5384F" stroke="#E5384F"')}<span>Saved ${esc(BYID[d.id].name)} to your list</span>`,1800); } break; }
-    case 'locs': { const open=!S.open.has(d.id); open?S.open.add(d.id):S.open.delete(d.id); el.classList.toggle('open',open); el.closest('.card').querySelector('.collapse').classList.toggle('shut',!open); break; }
-    case 'pickoutlet': { S.outletSel[d.id]=d.k; S.open.add(d.id); renderResults(false); break; }
+    case 'locs': openOutlets(d.id); break;
+    case 'pickoutlet': { S.outletSel[d.id]=d.k; closeSheet(); renderResults(false); break; }
     case 'outside': S.showOutside=!S.showOutside; el.classList.toggle('open',S.showOutside); el.nextElementSibling.classList.toggle('shut',!S.showOutside); break;
     case 'tab': if(S.tab!==d.t){ S.tab=d.t; S.pin=0; renderResults(true); } break;
     case 'rating': S.rating=!S.rating; renderResults(false); break;
