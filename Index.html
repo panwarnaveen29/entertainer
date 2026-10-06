@@ -191,7 +191,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .card{background:var(--card);border-radius:16px;box-shadow:0 1px 2px rgba(20,30,60,.05),0 4px 14px -8px rgba(20,30,60,.12);position:relative;overflow:hidden;clip-path:inset(0 round 16px);transition:transform .15s}
 .card-main{display:block;cursor:pointer;text-align:left;width:100%}
 .banner-wrap{position:relative}
-.cbanner{position:relative;height:132px;overflow:hidden}
+.cbanner{position:relative;height:150px;overflow:hidden}
 .cbanner::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 140% at 10% 100%,rgba(0,0,0,.35),transparent 60%),radial-gradient(70% 90% at 95% 0%,rgba(255,255,255,.22),transparent 55%);mix-blend-mode:overlay;pointer-events:none}
 .cbanner::after{content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .card.compact .cbanner{height:92px}
@@ -200,17 +200,8 @@ mark{background:none;color:var(--ink);font-weight:700}
 .b-rate{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:3px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700;padding:4px 8px;border-radius:8px;box-shadow:0 2px 8px -2px rgba(0,0,0,.3)}
 .logo{width:68px;height:68px;border-radius:14px;flex:none;display:grid;place-items:center;text-align:center;line-height:1;overflow:hidden;border:1px solid var(--line);font-weight:800;letter-spacing:.02em}
 .logo.sm{width:44px;height:44px;border-radius:10px}
-.logo.avatar{width:52px;height:52px;border-radius:50%;border:3px solid var(--card);box-shadow:0 2px 8px -3px rgba(0,0,0,.3);position:relative;top:-26px;margin-bottom:-26px;z-index:2}
-.chead{display:flex;align-items:flex-end;gap:10px;padding:0 16px}
-.cheadtxt{min-width:0;padding-bottom:1px}
-.cheadtxt .nm{margin-bottom:2px}
-.cstats{display:flex;margin:10px 16px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.cstat{flex:1;text-align:center;padding:8px 4px;border-right:1px solid var(--line)}
-.cstat:last-child{border-right:0}
-.cstat b{display:flex;align-items:center;justify-content:center;gap:3px;font-size:14px;font-weight:800;color:var(--ink)}
-.cstat b svg{width:11px;height:11px}
-.cstat small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
-.info{min-width:0;padding:10px 16px 13px;transition:background .15s}
+.info{min-width:0;padding:11px 16px 13px;transition:background .15s}
+.cbadge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:var(--green);color:#fff;font-size:11.5px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px -2px rgba(0,0,0,.35);z-index:2}
 .nm-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .nm{font-size:16.5px;font-weight:750;line-height:1.3;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px;min-width:0}
 .nm-row .nm{flex:1}
@@ -220,13 +211,19 @@ mark{background:none;color:var(--ink);font-weight:700}
 .cmeta .dot{opacity:.55;margin:0 1px}
 .cmeta .f-call{color:#8A5A0B}
 .cmeta .f-live{color:var(--green)}
-.offerrow{display:flex;align-items:center;gap:7px;margin-top:7px}
-.obadge{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;background:var(--blue-soft);color:var(--blue-ink);font-size:11px;font-weight:700;white-space:nowrap}
-.otitle{flex:1;min-width:0;font-size:13.5px;font-weight:650;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cline1,.cline2{font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cline1{color:var(--ink);margin-top:6px}
+.cline1 b{font-weight:650}
+.cline2{margin-top:4px;display:flex;align-items:center;gap:3px}
+.cline2 svg{flex:none;width:12px;height:12px;color:var(--star)}
+.cline2 b{color:var(--ink);font-weight:700}
+.cline1 .dot,.cline2 .dot{opacity:.55;margin:0 1px}
+.cline1 .f-call{color:#8A5A0B}
+.cline1 .f-live{color:var(--green)}
 .card.compact .coffer{font-size:13.5px;margin-top:7px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .coffer b{font-weight:650}
 .csave{display:block;margin-top:4px;font-size:12px;color:var(--muted);font-weight:500}
-.coffer .csave,.offerrow .csave{display:inline;flex:none;margin-top:0;margin-left:6px;font-size:12px;white-space:nowrap}
+.coffer .csave{display:inline;flex:none;margin-top:0;margin-left:6px;font-size:12px;white-space:nowrap}
 .cmeta .rt{color:var(--ink);font-weight:700}
 .cloc{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:11.5px;color:var(--muted)}
 .cloc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -850,23 +847,13 @@ function card(x,i,p,opts={}){
     <div class="card-main" role="button" tabindex="0" data-act="open" data-id="${m.id}" aria-label="${esc(m.name)}">
       <div class="banner-wrap">
         ${photoBanner(m)}
+        <span class="cbadge">${esc(m.offers[0][0])}</span>
         <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
       </div>
-      <div class="chead">
-        ${logo(m,'avatar')}
-        <div class="cheadtxt">
-          <div class="nm">${hl(m.name,fold(p.text))}</div>
-          <div class="cmeta">${esc(m.tags[0])}${flag||' · '+esc(m.price)}</div>
-        </div>
-      </div>
-      <div class="cstats">
-        <div class="cstat"><b>${ICON.star}${m.rating}</b><small>Rating</small></div>
-        <div class="cstat"><b>${m.offers.length}</b><small>Offer${m.offers.length>1?'s':''}</small></div>
-        <div class="cstat"><b>${others.length}</b><small>Location${others.length>1?'s':''}</small></div>
-      </div>
       <div class="info">
-        <div class="offerrow"><span class="obadge">${esc(m.offers[0][0])}</span><span class="otitle">${esc(m.offers[0][1])}</span><span class="csave">Save ${aed(m.save)}</span></div>
-        <div class="cloc">${ICON.pin}<span>${esc(near.name)}</span><span class="dot">·</span>${fmtKm(near.km)}</div>
+        <div class="nm">${hl(m.name,fold(p.text))}</div>
+        <div class="cline1"><b>${esc(m.offers[0][1])}</b><span class="dot">·</span>Save ${aed(m.save)}${flag}</div>
+        <div class="cline2">${ICON.star}<b>${m.rating}</b><span class="dot">·</span>${esc(near.name)}<span class="dot">·</span>${fmtKm(near.km)}</div>
       </div>
     </div>
     ${more}
