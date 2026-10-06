@@ -166,6 +166,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .sg{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 0;border-radius:12px;transition:background .15s}
 .sg:active{background:var(--chip)}
 .sg .ic{width:42px;height:42px;border-radius:12px;background:var(--chip);display:grid;place-items:center;flex:none;color:var(--ink-2)}
+.sg .ic.emoji{background:none;font-size:32px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .sg .t{flex:1;min-width:0}
 .sg .t div{font-size:15px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sg .t small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -619,8 +620,17 @@ const ICON = {
   sliders:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
   bolt:'<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 11-14h-7z"/></svg>'
 };
-const CATICON = {dining:['#FFF1E2','#C2620B'],hotels:['#E8F0FF','#2148D6'],attractions:['#F3E9FF','#7A33C9']};
 const CAT_EMOJI = {dining:'🥘',hotels:'🏨',attractions:'🎟️'};
+const TAG_EMOJI = {
+  Pizza:'🍕',Sushi:'🍣',Japanese:'🍣',Italian:'🍝',Brazilian:'🥩',Steakhouse:'🥩',Grill:'🍖',
+  Seafood:'🦐',Mediterranean:'🫒',Arabic:'🧆',Emirati:'🫖',International:'🌍',Cafe:'☕',Coffee:'☕',
+  Breakfast:'🍳',Brunch:'🥐',Buffet:'🍱',Casual:'🍽️',Australian:'🦘','Fine dining':'🍷',
+  'City hotel':'🏙️','Beach resort':'🏖️',Beach:'🏖️','Overwater villa':'🏝️','All-inclusive':'🏝️',
+  Staycation:'🧳',Pool:'🏊',Rooftop:'🌆','Rooftop pool':'🌆',Family:'👨‍👩‍👧‍👦',Kids:'🧒',
+  'Observation deck':'🔭',Views:'🌅','Desert safari':'🏜️',Adventure:'🧭','Theme park':'🎡',
+  Rides:'🎢',Waterpark:'💦','Snow park':'❄️','Indoor play':'🧸',Arcade:'🕹️',Indoor:'🏠',Outdoor:'🌳',
+  Waterfront:'🌊'
+};
 const HOTSPOTS=[['dubaimall','dubai mall'],['citywalk','city walk'],['hills','dubai hills'],['marina','marina'],['jbr','jbr'],['palm','palm']];
 const TRENDS=['fogo','palmshore','skydeck','marinasocial','wave','loft'];
 
@@ -773,7 +783,7 @@ function renderSuggest(){
   if(t){ M.forEach(m=>m.tags.forEach(tg=>{ const n=norm(tg); if(n.startsWith(t)||n.split(' ').some(w=>w.startsWith(t))||(SYN[t]===n)) tagCounts[tg]=(tagCounts[tg]||[]).concat(m.cat); })); }
   const tags=Object.entries(tagCounts).sort((x,y)=>y[1].length-x[1].length).slice(0,3);
   const buildTags=()=>tags.length?`<div class="sg-group"><div class="sg-label">Cuisines & types</div>${tags.map(([tg,cats])=>{const c=cats[0];
-      return `<button class="sg ${a('t:'+tg)}" style="--i:${idx++}" data-act="q" data-q="${esc(tg+(p.loc?' in '+p.loc.label:''))}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="t"><div>${hl(tg,t)}${p.loc?` <span style="color:var(--muted)">in ${esc(p.loc.label)}</span>`:''}</div><small>${CAT[c]} · ${cats.length} place${cats.length>1?'s':''}</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`:'';
+      return `<button class="sg ${a('t:'+tg)}" style="--i:${idx++}" data-act="q" data-q="${esc(tg+(p.loc?' in '+p.loc.label:''))}"><span class="ic emoji">${TAG_EMOJI[tg]||CAT_EMOJI[c]}</span><span class="t"><div>${hl(tg,t)}${p.loc?` <span style="color:var(--muted)">in ${esc(p.loc.label)}</span>`:''}</div><small>${CAT[c]} · ${cats.length} place${cats.length>1?'s':''}</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`:'';
   // a short prefix is ambiguous ("pi" → PIMS? Pickl? pizza?). Lead with what it resolves
   // to rather than whatever happens to match letter-for-letter, so intent wins over spelling.
   html += (t && t.length<=2 && tags.length) ? buildTags()+buildVenues() : buildVenues()+buildTags();
@@ -789,7 +799,7 @@ function renderSuggest(){
   // categories
   const catHit=Object.keys(CAT).filter(c=>CAT[c].toLowerCase().startsWith(qn));
   if(catHit.length){
-    html+=`<div class="sg-group"><div class="sg-label">Categories</div>${catHit.map(c=>`<button class="sg ${a('c:'+c)}" style="--i:${idx++}" data-act="q" data-q="${CAT[c]}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="t"><div>${hl(CAT[c],qn)}</div><small>Everything in ${CAT[c].toLowerCase()}</small></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}</div>`;
+    html+=`<div class="sg-group"><div class="sg-label">Categories</div>${catHit.map(c=>`<button class="sg ${a('c:'+c)}" style="--i:${idx++}" data-act="q" data-q="${CAT[c]}"><span class="ic emoji">${CAT_EMOJI[c]}</span><span class="t"><div>${hl(CAT[c],qn)}</div><small>Everything in ${CAT[c].toLowerCase()}</small></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}</div>`;
   }
   if(!html){
     if(res.fix){
