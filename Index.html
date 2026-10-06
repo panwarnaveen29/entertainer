@@ -93,9 +93,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 
 .res-only{display:none}
 .screen[data-mode="results"] .res-only{display:flex}
-.tokens{gap:6px;padding:10px 0 2px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;align-items:center}
-.tokens::-webkit-scrollbar,.filters::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
-.tok-label{font-size:12px;color:var(--muted);flex:none;margin-right:2px}
+.filters::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
 .token{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:999px;background:var(--blue);border:1px solid var(--blue-ink);color:#fff;font-size:12.5px;font-weight:600;animation:tokIn .35s var(--spring) both;animation-delay:calc(var(--i,0)*60ms)}
 .livechips{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 16px}
 .livechips .token{padding:0 12px;animation-delay:calc(var(--i,0)*70ms)}
@@ -154,11 +152,11 @@ mark{background:none;color:var(--ink);font-weight:700}
 /* popular hotspots */
 .hotspots{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
 .hotspots::-webkit-scrollbar{display:none}
-.hspot{position:relative;flex:none;width:138px;height:112px;border-radius:18px;overflow:hidden;padding:12px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#fff;isolation:isolate}
+.hspot{position:relative;flex:none;width:138px;height:84px;border-radius:16px;overflow:hidden;padding:10px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#fff;isolation:isolate}
 .hspot::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 140% at 10% 100%,rgba(0,0,0,.4),transparent 60%),radial-gradient(70% 90% at 95% 0%,rgba(255,255,255,.22),transparent 55%);mix-blend-mode:overlay;pointer-events:none;z-index:-1}
 .hspot::after{content:"";position:absolute;inset:0;opacity:.35;pointer-events:none;z-index:-1;background-size:cover;background-position:center;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='130' viewBox='0 0 160 130'%3E%3Cg stroke='white' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='0.6'%3E%3Cpath d='M-10 22 Q40 10 70 24 T170 28'/%3E%3Cpath d='M-10 58 Q50 46 90 60 T170 56'/%3E%3Cpath d='M-10 95 Q45 84 85 98 T170 90'/%3E%3Cpath d='M28 -10 Q18 40 32 70 T26 140'/%3E%3Cpath d='M92 -10 Q82 35 96 75 T88 140'/%3E%3Cpath d='M134 -10 Q126 45 138 85 T130 140'/%3E%3C/g%3E%3C/svg%3E")}
-.hspot b{font-size:15.5px;font-weight:750;line-height:1.25;white-space:normal}
-.hspot small{font-size:12px;opacity:.85;margin-top:4px}
+.hspot b{font-size:14px;font-weight:750;line-height:1.2;white-space:normal}
+.hspot small{font-size:11px;opacity:.85;margin-top:3px}
 
 /* trending */
 .trend-grid{overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
@@ -198,7 +196,6 @@ mark{background:none;color:var(--ink);font-weight:700}
 .banner button{font-weight:700;text-decoration:underline}
 .list{display:flex;flex-direction:column;gap:14px}
 .card{background:var(--card);border-radius:16px;box-shadow:0 1px 2px rgba(20,30,60,.05),0 4px 14px -8px rgba(20,30,60,.12);position:relative;overflow:hidden;clip-path:inset(0 round 16px);transition:transform .15s}
-.card.top{box-shadow:0 0 0 1.5px var(--blue-line),0 4px 14px -8px rgba(20,30,60,.12)}
 .card-main{display:block;cursor:pointer;text-align:left;width:100%}
 .banner-wrap{position:relative}
 .cbanner{position:relative;height:132px;overflow:hidden}
@@ -208,7 +205,6 @@ mark{background:none;color:var(--ink);font-weight:700}
 .cbanner-ic{position:absolute;right:10px;bottom:8px;opacity:.4;pointer-events:none}
 .cbanner-ic svg{width:22px;height:22px;color:#fff}
 .b-rate{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:3px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700;padding:4px 8px;border-radius:8px;box-shadow:0 2px 8px -2px rgba(0,0,0,.3)}
-.topmatch{position:absolute;top:10px;left:10px;background:var(--blue);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:4px 9px;border-radius:999px;box-shadow:0 2px 8px -2px rgba(0,0,0,.3)}
 .logo{width:68px;height:68px;border-radius:14px;flex:none;display:grid;place-items:center;text-align:center;line-height:1;overflow:hidden;border:1px solid var(--line);font-weight:800;letter-spacing:.02em}
 .logo.sm{width:44px;height:44px;border-radius:10px}
 .logo.avatar{width:52px;height:52px;border-radius:50%;border:3px solid var(--card);box-shadow:0 2px 8px -3px rgba(0,0,0,.3);position:relative;top:-26px;margin-bottom:-26px;z-index:2}
@@ -404,11 +400,11 @@ mark{background:none;color:var(--ink);font-weight:700}
       <div class="eyebrow">ENTERTAINER · Search redesign</div>
       <h1>Find what you mean.</h1>
     </div>
-    <p>Search understands the intent behind your words, and ranks results accordingly. The app already parses "pizza near me" into words. What it doesn't do is rank by what those words mean. In testing, that search put a spa ahead of the pizza places, because it's matching text, not understanding intent. This redesign makes the understanding explicit and ranks on it, on top of the merchant-per-outlet repeats and the scope that's never shown.</p>
+    <p>Search understands the intent behind your words, and ranks results accordingly. The app already parses "pizza near me" into words. What it doesn't do is rank by what those words mean. In testing, that search put a spa ahead of the pizza places, because it's matching text, not understanding intent. This redesign ranks on that understanding directly, on top of the merchant-per-outlet repeats and the scope that's never shown.</p>
     <div>
       <h2>What changed</h2>
       <ol>
-        <li><span><b>Understood intent, shown as such.</b> "Pizza near me" resolves to <b>Pizza · Near you</b> as a visible chip, not silently discarded words. Weak matches drop out, and proximity ranks what's left, so a spa can't outrank the pizza places.</span></li>
+        <li><span><b>Ranked by meaning, not just matched.</b> "Pizza near me" only returns pizza places. Weak matches drop out entirely instead of getting buried lower, and proximity ranks what's left, so a spa can't outrank the pizza places.</span></li>
         <li><span><b>One card per merchant.</b> Offers belong to the merchant. Outlets fold underneath, labelled the way the catalogue is: outlets, not "locations."</span></li>
         <li><span><b>Scope widens itself.</b> Naming a far place expands the search instead of returning nothing.</span></li>
         <li><span><b>Redeem, not book.</b> A 4-digit PIN in person. Hotels need a call ahead first.</span></li>
@@ -446,7 +442,6 @@ mark{background:none;color:var(--ink);font-weight:700}
           <button class="icon-btn mapbtn" id="mapBtn" data-act="view" aria-label="Map view"></button>
           <button class="cancel" data-act="cancel">Cancel</button>
         </div>
-        <div class="tokens res-only" id="tokens"></div>
         <div class="filters res-only" id="filters"></div>
         <div class="tabs res-only" id="tabs"></div>
       </header>
@@ -825,15 +820,6 @@ function showSkeleton(){
 }
 function renderHeaderRes(r){
   const p=r.p;
-  // tokens
-  let tk=[];
-  if(p.text) tk.push(['text',r.fix&&!r.inS.concat(r.outS).some(x=>x.s>=60)?r.fix:cap(p.text),'']);
-  if(p.cat&&!(p.text&&TAGWORDS.has(p.text))) tk.push(['cat',CAT[p.cat],'']);
-  if(p.loc) tk.push(['loc',p.loc.label,ICON.pin]);
-  else if(p.near) tk.push(['near','Near you',ICON.pin]);
-  $('#tokens').innerHTML = tk.length
-    ? `<span class="tok-label">Understood</span>`+tk.map(([k,l,ic],i)=>`<button class="token" style="--i:${i}" data-act="token" data-k="${k}" aria-label="Remove ${esc(l)}">${ic}${esc(l)}<span class="x">${ICON.x}</span></button>`).join('')
-    : `<span class="tok-label">Showing</span><span class="token">${S.scope==='near'?'Everything near you':'Everything'}</span>`;
   // filters
   const outsideScopeCount = SCOPES.map(s=>{ const keep=S.scope; S.scope=s; const c=compute().inS.length; S.scope=keep; return c; });
   S._scopeCounts=outsideScopeCount;
@@ -867,12 +853,11 @@ function card(x,i,p,opts={}){
   // distance. Rank is the signal. The best result is simply first, the way
   // Google, Yelp and Maps all do it, instead of one result getting a giant
   // banner and the rest getting squeezed.
-  if(!opts.compact) return `<article class="card ${opts.top?'top':''} ${opts.noAnim?'':'anim'}" style="--i:${i}">
+  if(!opts.compact) return `<article class="card ${opts.noAnim?'':'anim'}" style="--i:${i}">
     <div class="card-main" role="button" tabindex="0" data-act="open" data-id="${m.id}" aria-label="${esc(m.name)}">
       <div class="banner-wrap">
         ${photoBanner(m)}
         <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
-        ${opts.top?`<span class="topmatch">Top match</span>`:''}
       </div>
       <div class="chead">
         ${logo(m,'avatar')}
@@ -928,7 +913,7 @@ function renderResults(animate){
     html+=`<div class="banner">${ICON.info}<span>Nothing in ${SCOPE[S.scope]==='Near me'?'your area':SCOPE[S.scope]} for “${esc(S.q)}”. Here ${outside.length===1?'is the match':`are ${outside.length} matches`} further away.</span></div>`;
     S.showOutside=true;
   }
-  if(list.length) html+=`<div class="list">${list.map((x,i)=>card(x,i,p,{noAnim:!animate,top:i===0})).join('')}</div>`;
+  if(list.length) html+=`<div class="list">${list.map((x,i)=>card(x,i,p,{noAnim:!animate})).join('')}</div>`;
   if(outside.length){
     if(list.length) html+=`<button class="outside-btn ${S.showOutside?'open':''}" data-act="outside"><span>${outsideLabel()} · ${outside.length} more ${ICON.chev}</span></button>`;
     html+=`<div class="collapse ${S.showOutside?'':'shut'}"><div><div class="list">${outside.map((x,i)=>card(x,i,p,{noAnim:true})).join('')}</div></div></div>`;
@@ -1109,12 +1094,6 @@ document.addEventListener('click',e=>{
     case 'setsort': S.sort=d.v; closeSheet(); renderResults(true); break;
     case 'closesheet': closeSheet(); break;
     case 'pin': { S.pin=+d.i; document.querySelectorAll('.pin').forEach(g=>g.classList.toggle('on',+g.dataset.i===S.pin)); const car=$('#carousel'); car&&car.scrollTo({left:S.pin*300,behavior:'smooth'}); break; }
-    case 'token': {
-      const p=parse(S.q); const parts={text:p.text, cat:p.cat&&!(p.text&&TAGWORDS.has(p.text))?CAT[p.cat]:'', loc:p.loc?'in '+p.loc.label:'', near:p.near?'near me':''};
-      parts[d.k]=''; if(d.k==='text'&&p.text&&TAGWORDS.has(p.text)) parts.cat='';
-      const nq=[parts.text,parts.cat,parts.loc,parts.near].filter(Boolean).join(' ').replace(/^in /,'');
-      el.style.transition='transform .2s,opacity .2s'; el.style.transform='scale(.6)'; el.style.opacity='0';
-      setTimeout(()=>{ if(nq) submit(nq,{keepView:true}); else { input.value=''; S.q=''; syncField(); renderIdle(); } },180); break; }
     case 'toast': toast(`${ICON.info}<span>${esc(d.msg)} (outside this prototype).</span>`); break;
     case 'demo': demo(d.q); break;
   }
