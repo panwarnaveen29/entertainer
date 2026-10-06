@@ -161,9 +161,11 @@ mark{background:none;color:var(--ink);font-weight:700}
 .hspot small{font-size:12px;opacity:.85;margin-top:4px}
 
 /* trending */
-.trend-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
+.trend-grid{overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
 .trend-grid::-webkit-scrollbar{display:none}
-.tcard{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.trow{display:flex;gap:10px;width:max-content}
+.trow+.trow{margin-top:10px}
+.tcard{flex:none;display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
 .tcard:active{transform:scale(.96)}
 .tcard-ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none}
 .tcard-ic svg{width:16px;height:16px}
@@ -709,9 +711,9 @@ function renderIdle(){
       }).join('')}</div>
     </section>
     <section class="sec"><div class="sec-h"><h3>Trending in Dubai</h3></div>
-      <div class="trend-grid">${TRENDS.map(([t,cat],i)=>{const[bg,fg]=cat==='pin'?['#EEF0F5','#3B404C']:CATICON[cat];
-        return `<button class="tcard anim" style="--i:${i+2}" data-act="q" data-q="${esc(t)}"><span class="tcard-ic" style="background:${bg};color:${fg}">${cat==='pin'?ICON.pin:ICON[cat]}</span><span>${esc(t)}</span></button>`;
-      }).join('')}</div>
+      <div class="trend-grid">${[0,1].map(row=>`<div class="trow">${TRENDS.filter((_,i)=>i%2===row).map(([t,cat],i)=>{const[bg,fg]=cat==='pin'?['#EEF0F5','#3B404C']:CATICON[cat];
+        return `<button class="tcard anim" style="--i:${i*2+row+2}" data-act="q" data-q="${esc(t)}"><span class="tcard-ic" style="background:${bg};color:${fg}">${cat==='pin'?ICON.pin:ICON[cat]}</span><span>${esc(t)}</span></button>`;
+      }).join('')}</div>`).join('')}</div>
     </section>
   </div>`;
 }
