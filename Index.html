@@ -534,14 +534,14 @@ function hl(name,text){
 }
 const logo=(m,cls='')=>{const[bg,fg,h,f,sz]=m.logo;return `<div class="logo ${cls}" style="background:${bg};color:${fg};font-family:${f};font-size:${cls?Math.round(sz*.55):sz}px" aria-hidden="true">${cls?h.replace(/<br>.*$/,''):h}</div>`};
 // Card banners are a lit, textured colour field (built from the merchant's own logo
-// colour) rather than stock photography — an artifact can't fetch external images
+// colour) rather than stock photography. An artifact can't fetch external images
 // (only a few CDNs are allowed for scripts/fonts, nothing for images), so an actual
 // photo here would just be a permanently broken image. A layered gradient mesh plus a
 // film-grain overlay reads as a lit, out-of-focus scene instead of a flat UI swatch.
 const shade=(hex,amt)=>{let h=hex.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);const c=(v,o)=>Math.max(0,Math.min(255,(n>>o&255)+v));return '#'+[16,8,0].map(o=>c(amt,o).toString(16).padStart(2,'0')).join('')};
 // A merchant's own logo colour is sometimes near-white (made for a small logo badge,
 // not a full scene wash), which left some banners blank. A curated set of moody,
-// saturated duotones — picked deterministically per merchant — reads as lit
+// saturated duotones, picked deterministically per merchant, reads as lit
 // photography regardless of what the logo colour happens to be.
 const PHOTO_DUO = [['#4A2E1F','#8C5A32'],['#2C3B2C','#587049'],['#3B2432','#75344F'],['#20303E','#3F6078'],
   ['#402617','#8A531F'],['#282828','#5A4C3B'],['#30231A','#79471F'],['#223526','#49644A'],
@@ -636,7 +636,7 @@ function compute(applyFilters=true){
   if(strong) rows=rows.filter(x=>x.s>=60||x.s===10);
   else {
     // prefer a shared tag/category correction (e.g. "Sushi") over one merchant's own
-    // name just because it happened to match first — a name-prefix fix (s===45) only
+    // name just because it happened to match first. A name-prefix fix (s===45) only
     // tells you about that one merchant, not what the whole result set has in common.
     const candidates=rows.filter(x=>x.fix);
     const shared=candidates.find(x=>!(x.s===45&&x.fix===x.m.name));
@@ -689,7 +689,7 @@ let prevKeys=new Set();
 function renderSuggest(){
   setMode('typing');
   const raw=input.value; const qn=norm(raw);
-  // One letter is coincidence, not intent — "d" word-matches "Fine dining", "Observation
+  // One letter is coincidence, not intent. "d" word-matches "Fine dining", "Observation
   // deck" and the "Dining" category all at once, none of them meaningfully about "d".
   // Wait for enough signal before attempting to resolve it into anything structured.
   if(qn.length<2){ prevKeys=new Set(); renderIdleInTyping(); return; }
@@ -712,9 +712,9 @@ function renderSuggest(){
     const label=`${p.text?cap(p.text):CAT[p.cat]} ${p.loc?'in '+p.loc.label:'near you'}`;
     html+=`<button class="sg hero ${a('h:'+label)}" style="--i:${idx++}" data-act="q" data-q="${esc(raw)}"><span class="ic">${ICON.search}</span><span class="t"><div>${esc(label)}</div><small>${res.rows.length} place${res.rows.length===1?'':'s'} · ${res.rows.reduce((s,x)=>s+x.m.offers.length,0)} offers</small></span><span class="arrow">${ICON.arrow}</span></button>`;
   }
-  // merchants (raw name/word matches — catalogue matching). Score against the full typed
+  // merchants (raw name/word matches, catalogue matching). Score against the full typed
   // text even when it also resolved as a place (qn): "palm" parses to the place Palm
-  // Jumeirah, but Palm Shore Resort's name starts with "palm" too — a literal name match
+  // Jumeirah, but Palm Shore Resort's name starts with "palm" too. A literal name match
   // is a strong enough signal to surface as a venue alongside the place, not get hidden
   // by it. The s>=80 threshold below still keeps this to real name matches, not every
   // merchant that merely has an outlet in the resolved place.
@@ -722,16 +722,16 @@ function renderSuggest(){
     .filter(x=>x.r.s>=80||x.r.s===45).sort((x,y)=>y.r.s-x.r.s||Math.min(...x.m.out.map(k=>AREA[k].km))-Math.min(...y.m.out.map(k=>AREA[k].km))).slice(0,4);
   const buildVenues=()=>names.length?`<div class="sg-group"><div class="sg-label">Venues</div>${names.map(({m})=>{const near=m.out.map(k=>AREA[k]).sort((x,y)=>x.km-y.km)[0];
       return `<button class="sg ${a('m:'+m.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${m.id}">${logo(m,'sm')}<span class="t"><div>${hl(m.name,fold(p.text||qn))}</div><small>${m.tags[0]} · ${esc(near.name)} · ${fmtKm(near.km)}${m.out.length>1?` · ${m.out.length} outlets`:''}</small></span><span class="tail">${aed(m.save)}</span></button>`}).join('')}</div>`:'';
-  // tags / cuisines (resolved intent — what the query means, not just what it spells)
+  // tags / cuisines (resolved intent, what the query means, not just what it spells)
   const t=p.text; const tagCounts={};
   if(t){ M.forEach(m=>m.tags.forEach(tg=>{ const n=norm(tg); if(n.startsWith(t)||n.split(' ').some(w=>w.startsWith(t))||(SYN[t]===n)) tagCounts[tg]=(tagCounts[tg]||[]).concat(m.cat); })); }
   const tags=Object.entries(tagCounts).sort((x,y)=>y[1].length-x[1].length).slice(0,3);
   const buildTags=()=>tags.length?`<div class="sg-group"><div class="sg-label">Cuisines & types</div>${tags.map(([tg,cats])=>{const c=cats[0];
       return `<button class="sg ${a('t:'+tg)}" style="--i:${idx++}" data-act="q" data-q="${esc(tg+(p.loc?' in '+p.loc.label:''))}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="t"><div>${hl(tg,t)}${p.loc?` <span style="color:var(--muted)">in ${esc(p.loc.label)}</span>`:''}</div><small>${CAT[c]} · ${cats.length} place${cats.length>1?'s':''}</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`:'';
-  // a short prefix is ambiguous ("pi" → PIMS? Pickl? pizza?) — lead with what it resolves
+  // a short prefix is ambiguous ("pi" → PIMS? Pickl? pizza?). Lead with what it resolves
   // to rather than whatever happens to match letter-for-letter, so intent wins over spelling.
   html += (t && t.length<=2 && tags.length) ? buildTags()+buildVenues() : buildVenues()+buildTags();
-  // places — prefix-matched live, same as venues and cuisines above, so a place name
+  // places, prefix-matched live, same as venues and cuisines above, so a place name
   // isn't invisible until typed in full. Previously gated on "no leftover text", which
   // meant a prefix that could plausibly be a venue/cuisine (like "ju") suggested nothing
   // at all instead of surfacing the place it could also become (Jumeirah).
@@ -821,7 +821,7 @@ function card(x,i,p,opts={}){
   const m=x.m, near=x.near, others=(x.inOuts.length?x.outs:x.outs);
   const open=S.open.has(m.id);
   const moreN=others.length-1;
-  // a merchant can have dozens of outlets — list three, then hand off to the map
+  // a merchant can have dozens of outlets. List three, then hand off to the map
   // rather than turning the card into a scroll of outlet rows.
   const shown=others.slice(1,4), hiddenN=moreN-shown.length;
   const flag=m.reserve==='instant'?`<span class="dot">·</span><b class="f-live">Live booking</b>`
@@ -829,8 +829,8 @@ function card(x,i,p,opts={}){
   const more=moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>
       <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span></button>`:''}</div></div></div>`:'';
 
-  // Every result reads the same way: a small thumbnail, name, rating, offer,
-  // distance. Rank is the signal — the best result is simply first, the way
+  // Every result reads the same way: a photo banner, name, rating, offer,
+  // distance. Rank is the signal. The best result is simply first, the way
   // Google, Yelp and Maps all do it, instead of one result getting a giant
   // banner and the rest getting squeezed.
   if(!opts.compact) return `<article class="card ${opts.top?'top':''} ${opts.noAnim?'':'anim'}" style="--i:${i}">
