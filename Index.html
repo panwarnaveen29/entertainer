@@ -345,12 +345,12 @@ mark{background:none;color:var(--ink);font-weight:700}
       <div class="eyebrow">ENTERTAINER · Search redesign</div>
       <h1>Find the exact offer you came for</h1>
     </div>
-    <p>The app already understands "pizza near me." What it doesn't do well is rank by it — in testing, that search surfaced a spa before the pizza places. This fixes relevance, not just parsing, alongside the merchant-per-outlet repeats and the scope that's never shown.</p>
+    <p>The app already parses "pizza near me" into words. What it doesn't do is rank by what those words mean — in testing, that search surfaced a spa before the pizza places, because matching is closer to catalogue search than to intent search. This redesign makes the understanding explicit and ranks on it, on top of the merchant-per-outlet repeats and the scope that's never shown.</p>
     <div>
       <h2>What changed</h2>
       <ol>
-        <li><span><b>It understands, then ranks.</b> "Pizza near me" becomes cuisine + place — weak matches drop out, so a spa can't outrank the pizza places.</span></li>
-        <li><span><b>One card per merchant.</b> Offers belong to the merchant — outlets fold underneath.</span></li>
+        <li><span><b>Understood intent, shown as such.</b> "Pizza near me" resolves to <b>Pizza · Near you</b> as a visible chip, not silently discarded words — weak matches drop out and proximity ranks what's left, so a spa can't outrank the pizza places.</span></li>
+        <li><span><b>One card per merchant.</b> Offers belong to the merchant — outlets fold underneath, labelled the way the catalogue is: outlets, not "locations."</span></li>
         <li><span><b>Scope widens itself.</b> Naming a far place expands the search instead of returning nothing.</span></li>
         <li><span><b>Redeem, not book.</b> A 4-digit PIN in person — hotels need a call ahead first.</span></li>
       </ol>
@@ -358,7 +358,7 @@ mark{background:none;color:var(--ink);font-weight:700}
     <div>
       <h2>Try</h2>
       <div class="try">
-        <button data-act="demo" data-q="pizza near me">pizza near me <small>· relevance</small></button>
+        <button data-act="demo" data-q="pizza near me">pizza near me <small>· relevance + near you</small></button>
         <button data-act="demo" data-q="hurricans gril">hurricans gril <small>· typo</small></button>
         <button data-act="demo" data-q="staycation">staycation</button>
         <button data-act="demo" data-q="maldives">maldives <small>· global</small></button>
@@ -571,9 +571,11 @@ const needScope = l=>l.city?(l.city==='Maldives'?'world':l.city==='Dubai'?'dubai
 const outsideLabel = ()=>({near:'Further away',dubai:'Outside Dubai',uae:'Outside the UAE',world:''}[S.scope]);
 
 /* ---------------- query understanding ---------------- */
+const NEAR_RE=/ (near me|nearby|close to me|close by|around me) /;
 function parse(raw){
   let qn=norm(raw).replace(/[^a-z0-9& ]/g,' ').replace(/\s+/g,' ').trim();
-  let q=' '+qn+' ', loc=null, cat=null;
+  let q=' '+qn+' ', loc=null, cat=null, near=false;
+  if(NEAR_RE.test(q)){ near=true; q=q.replace(NEAR_RE,' '); }
   const aliases=[]; LOCS.forEach(l=>l.aliases.forEach(a=>aliases.push([a,l]))); aliases.sort((a,b)=>b[0].length-a[0].length);
   const exactAlias = aliases.find(([a])=>a===qn);
   const nameHit = qn.length>2 && M.some(m=>norm(m.name).startsWith(qn));
@@ -582,7 +584,7 @@ function parse(raw){
   }
   let words=q.trim().split(' ').filter(Boolean);
   words=words.filter(w=>{ if(CATWORDS[w]){ cat=CATWORDS[w]; return TAGWORDS.has(w); } return !STOP.has(w); });
-  return {raw, loc, cat, text:words.join(' ')};
+  return {raw, loc, cat, text:words.join(' '), near:near&&!loc};
 }
 function scoreText(m,text){
   if(!text) return {s:10};
@@ -675,30 +677,30 @@ function renderSuggest(){
   const live=[];
   if(p.text) live.push(cap(p.text));
   if(p.loc) live.push(p.loc.label);
+  else if(p.near) live.push('Near you');
   if(p.cat) live.push(CAT[p.cat]);
   else if(p.text){ const top=res.rows.find(r=>r.s>=60); if(top) live.push(CAT[top.m.cat]); }
   if(live.length) html+=`<div class="livechips">${live.map((l,i)=>`<span class="token" style="--i:${i}">${esc(l)}</span>`).join('')}</div>`;
 
   // smart composite
-  if(p.loc && (p.text||p.cat)){
-    const label=`${p.text?cap(p.text):CAT[p.cat]} in ${p.loc.label}`;
+  if((p.loc||p.near) && (p.text||p.cat)){
+    const label=`${p.text?cap(p.text):CAT[p.cat]} ${p.loc?'in '+p.loc.label:'near you'}`;
     html+=`<button class="sg hero ${a('h:'+label)}" style="--i:${idx++}" data-act="q" data-q="${esc(raw)}"><span class="ic">${ICON.search}</span><span class="t"><div>${esc(label)}</div><small>${res.rows.length} place${res.rows.length===1?'':'s'} · ${res.rows.reduce((s,x)=>s+x.m.offers.length,0)} offers</small></span><span class="arrow">${ICON.arrow}</span></button>`;
   }
-  // merchants
+  // merchants (raw name/word matches — catalogue matching)
   const names=M.map(m=>{ const r=scoreText(m,p.loc&&!p.text?'':(p.text||qn)); return r&&r.s>=45&&(p.text||!p.loc)?{m,r}:null; }).filter(Boolean)
     .filter(x=>x.r.s>=80||x.r.s===45).sort((x,y)=>y.r.s-x.r.s||Math.min(...x.m.out.map(k=>AREA[k].km))-Math.min(...y.m.out.map(k=>AREA[k].km))).slice(0,4);
-  if(names.length){
-    html+=`<div class="sg-group"><div class="sg-label">Venues</div>${names.map(({m})=>{const near=m.out.map(k=>AREA[k]).sort((x,y)=>x.km-y.km)[0];
-      return `<button class="sg ${a('m:'+m.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${m.id}">${logo(m,'sm')}<span class="t"><div>${hl(m.name,fold(p.text||qn))}</div><small>${m.tags[0]} · ${esc(near.name)} · ${fmtKm(near.km)}${m.out.length>1?` · ${m.out.length} locations`:''}</small></span><span class="tail">${aed(m.save)}</span></button>`}).join('')}</div>`;
-  }
-  // tags / cuisines
+  const buildVenues=()=>names.length?`<div class="sg-group"><div class="sg-label">Venues</div>${names.map(({m})=>{const near=m.out.map(k=>AREA[k]).sort((x,y)=>x.km-y.km)[0];
+      return `<button class="sg ${a('m:'+m.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${m.id}">${logo(m,'sm')}<span class="t"><div>${hl(m.name,fold(p.text||qn))}</div><small>${m.tags[0]} · ${esc(near.name)} · ${fmtKm(near.km)}${m.out.length>1?` · ${m.out.length} outlets`:''}</small></span><span class="tail">${aed(m.save)}</span></button>`}).join('')}</div>`:'';
+  // tags / cuisines (resolved intent — what the query means, not just what it spells)
   const t=p.text; const tagCounts={};
   if(t){ M.forEach(m=>m.tags.forEach(tg=>{ const n=norm(tg); if(n.startsWith(t)||n.split(' ').some(w=>w.startsWith(t))||(SYN[t]===n)) tagCounts[tg]=(tagCounts[tg]||[]).concat(m.cat); })); }
   const tags=Object.entries(tagCounts).sort((x,y)=>y[1].length-x[1].length).slice(0,3);
-  if(tags.length){
-    html+=`<div class="sg-group"><div class="sg-label">Cuisines & types</div>${tags.map(([tg,cats])=>{const c=cats[0];
-      return `<button class="sg ${a('t:'+tg)}" style="--i:${idx++}" data-act="q" data-q="${esc(tg+(p.loc?' in '+p.loc.label:''))}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="t"><div>${hl(tg,t)}${p.loc?` <span style="color:var(--muted)">in ${esc(p.loc.label)}</span>`:''}</div><small>${CAT[c]} · ${cats.length} place${cats.length>1?'s':''}</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`;
-  }
+  const buildTags=()=>tags.length?`<div class="sg-group"><div class="sg-label">Cuisines & types</div>${tags.map(([tg,cats])=>{const c=cats[0];
+      return `<button class="sg ${a('t:'+tg)}" style="--i:${idx++}" data-act="q" data-q="${esc(tg+(p.loc?' in '+p.loc.label:''))}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="t"><div>${hl(tg,t)}${p.loc?` <span style="color:var(--muted)">in ${esc(p.loc.label)}</span>`:''}</div><small>${CAT[c]} · ${cats.length} place${cats.length>1?'s':''}</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`:'';
+  // a short prefix is ambiguous ("pi" → PIMS? Pickl? pizza?) — lead with what it resolves
+  // to rather than whatever happens to match letter-for-letter, so intent wins over spelling.
+  html += (t && t.length<=2 && tags.length) ? buildTags()+buildVenues() : buildVenues()+buildTags();
   // places
   const places=LOCS.filter(l=>l.aliases.some(al=>al.startsWith(qn)||(' '+al).includes(' '+qn))&&qn.length>=2).slice(0,3);
   if(places.length&&!p.text){
@@ -739,6 +741,7 @@ function submit(q,opts={}){
   S.tab=p.cat||'all';
   toastMsg=null;
   if(p.loc){ const need=needScope(p.loc); if(rank(need)>rank(S.scope)){ S.scope=need; toastMsg=`${ICON.globe}<span>Searching ${esc(p.loc.label)}, so we widened your search to <b>${SCOPE[need]}</b>.</span>`; } }
+  else if(p.near && !opts.scope) S.scope='near';
   // refine chips from the unfiltered result set
   const base=compute(false); const counts={};
   [...base.inS,...base.outS].forEach(x=>x.m.tags.forEach(t=>{ if(!norm(p.text).includes(norm(t))&&norm(t)!==norm(p.text)) counts[t]=(counts[t]||0)+1; }));
@@ -760,6 +763,7 @@ function renderHeaderRes(r){
   if(p.text) tk.push(['text',r.fix&&!r.inS.concat(r.outS).some(x=>x.s>=60)?r.fix:cap(p.text),'']);
   if(p.cat&&!(p.text&&TAGWORDS.has(p.text))) tk.push(['cat',CAT[p.cat],'']);
   if(p.loc) tk.push(['loc',p.loc.label,ICON.pin]);
+  else if(p.near) tk.push(['near','Near you',ICON.pin]);
   $('#tokens').innerHTML = tk.length
     ? `<span class="tok-label">Showing</span>`+tk.map(([k,l,ic],i)=>`<button class="token" style="--i:${i}" data-act="token" data-k="${k}" aria-label="Remove ${esc(l)}">${ic}${esc(l)}<span class="x">${ICON.x}</span></button>`).join('')
     : `<span class="tok-label">Showing</span><span class="token">${S.scope==='near'?'Everything near you':'Everything'}</span>`;
@@ -797,7 +801,7 @@ function card(x,i,p,opts={}){
     </div>
     <span class="b-rate">★ ${m.rating}</span>
     <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
-    ${moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more location${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>
+    ${moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN+1} outlets · Change outlet ${ICON.chev}</button>
       <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${others.slice(1).map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}</div></div></div>`:''}
   </article>`;
 }
@@ -1002,9 +1006,9 @@ document.addEventListener('click',e=>{
     case 'closesheet': closeSheet(); break;
     case 'pin': { S.pin=+d.i; document.querySelectorAll('.pin').forEach(g=>g.classList.toggle('on',+g.dataset.i===S.pin)); const car=$('#carousel'); car&&car.scrollTo({left:S.pin*300,behavior:'smooth'}); break; }
     case 'token': {
-      const p=parse(S.q); const parts={text:p.text, cat:p.cat&&!(p.text&&TAGWORDS.has(p.text))?CAT[p.cat]:'', loc:p.loc?'in '+p.loc.label:''};
+      const p=parse(S.q); const parts={text:p.text, cat:p.cat&&!(p.text&&TAGWORDS.has(p.text))?CAT[p.cat]:'', loc:p.loc?'in '+p.loc.label:'', near:p.near?'near me':''};
       parts[d.k]=''; if(d.k==='text'&&p.text&&TAGWORDS.has(p.text)) parts.cat='';
-      const nq=[parts.text,parts.cat,parts.loc].filter(Boolean).join(' ').replace(/^in /,'');
+      const nq=[parts.text,parts.cat,parts.loc,parts.near].filter(Boolean).join(' ').replace(/^in /,'');
       el.style.transition='transform .2s,opacity .2s'; el.style.transform='scale(.6)'; el.style.opacity='0';
       setTimeout(()=>{ if(nq) submit(nq,{keepView:true}); else { input.value=''; S.q=''; syncField(); renderIdle(); } },180); break; }
     case 'toast': toast(`${ICON.info}<span>${esc(d.msg)} (outside this prototype).</span>`); break;
