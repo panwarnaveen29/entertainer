@@ -687,8 +687,13 @@ function renderSuggest(){
     const label=`${p.text?cap(p.text):CAT[p.cat]} ${p.loc?'in '+p.loc.label:'near you'}`;
     html+=`<button class="sg hero ${a('h:'+label)}" style="--i:${idx++}" data-act="q" data-q="${esc(raw)}"><span class="ic">${ICON.search}</span><span class="t"><div>${esc(label)}</div><small>${res.rows.length} place${res.rows.length===1?'':'s'} · ${res.rows.reduce((s,x)=>s+x.m.offers.length,0)} offers</small></span><span class="arrow">${ICON.arrow}</span></button>`;
   }
-  // merchants (raw name/word matches — catalogue matching)
-  const names=M.map(m=>{ const r=scoreText(m,p.loc&&!p.text?'':(p.text||qn)); return r&&r.s>=45&&(p.text||!p.loc)?{m,r}:null; }).filter(Boolean)
+  // merchants (raw name/word matches — catalogue matching). Score against the full typed
+  // text even when it also resolved as a place (qn): "palm" parses to the place Palm
+  // Jumeirah, but Palm Shore Resort's name starts with "palm" too — a literal name match
+  // is a strong enough signal to surface as a venue alongside the place, not get hidden
+  // by it. The s>=80 threshold below still keeps this to real name matches, not every
+  // merchant that merely has an outlet in the resolved place.
+  const names=M.map(m=>{ const r=scoreText(m,p.text||qn); return r&&r.s>=45?{m,r}:null; }).filter(Boolean)
     .filter(x=>x.r.s>=80||x.r.s===45).sort((x,y)=>y.r.s-x.r.s||Math.min(...x.m.out.map(k=>AREA[k].km))-Math.min(...y.m.out.map(k=>AREA[k].km))).slice(0,4);
   const buildVenues=()=>names.length?`<div class="sg-group"><div class="sg-label">Venues</div>${names.map(({m})=>{const near=m.out.map(k=>AREA[k]).sort((x,y)=>x.km-y.km)[0];
       return `<button class="sg ${a('m:'+m.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${m.id}">${logo(m,'sm')}<span class="t"><div>${hl(m.name,fold(p.text||qn))}</div><small>${m.tags[0]} · ${esc(near.name)} · ${fmtKm(near.km)}${m.out.length>1?` · ${m.out.length} outlets`:''}</small></span><span class="tail">${aed(m.save)}</span></button>`}).join('')}</div>`:'';
@@ -701,9 +706,12 @@ function renderSuggest(){
   // a short prefix is ambiguous ("pi" → PIMS? Pickl? pizza?) — lead with what it resolves
   // to rather than whatever happens to match letter-for-letter, so intent wins over spelling.
   html += (t && t.length<=2 && tags.length) ? buildTags()+buildVenues() : buildVenues()+buildTags();
-  // places
+  // places — prefix-matched live, same as venues and cuisines above, so a place name
+  // isn't invisible until typed in full. Previously gated on "no leftover text", which
+  // meant a prefix that could plausibly be a venue/cuisine (like "ju") suggested nothing
+  // at all instead of surfacing the place it could also become (Jumeirah).
   const places=LOCS.filter(l=>l.aliases.some(al=>al.startsWith(qn)||(' '+al).includes(' '+qn))&&qn.length>=2).slice(0,3);
-  if(places.length&&!p.text){
+  if(places.length){
     html+=`<div class="sg-group"><div class="sg-label">Places</div>${places.map(l=>{const n=M.filter(m=>m.out.some(k=>inLoc({k,...AREA[k]},l))).length; const far=needScope(l);
       return `<button class="sg ${a('p:'+l.key)}" style="--i:${idx++}" data-act="q" data-q="${esc(l.label)}"><span class="ic">${far==='world'?ICON.plane:ICON.pin}</span><span class="t"><div>${hl(l.label,qn)}</div><small>${l.city?(far==='world'?'Worldwide':'Emirate'):'Area in Dubai'} · ${n} places with offers</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`;
   }
