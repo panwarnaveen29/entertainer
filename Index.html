@@ -92,12 +92,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .res-only{display:none}
 .screen[data-mode="results"] .res-only{display:flex}
 .filters::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
-.token{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:999px;background:var(--blue);border:1px solid var(--blue-ink);color:#fff;font-size:12.5px;font-weight:600;animation:tokIn .35s var(--spring) both;animation-delay:calc(var(--i,0)*60ms)}
-.livechips{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 16px}
-.livechips .token{padding:0 12px;animation-delay:calc(var(--i,0)*70ms)}
-.token .x{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
 .token .ti{opacity:.7;font-weight:500}
-@keyframes tokIn{from{transform:scale(.6);opacity:0}}
 .filters{gap:8px;padding:10px 16px 10px;margin:0 -16px;overflow-x:auto;scrollbar-width:none}
 .fchip{flex:none;height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;font-weight:500;color:var(--ink-2);transition:background .2s,border-color .2s,color .2s,transform .12s}
 .fchip:active{transform:scale(.95)}
@@ -723,15 +718,6 @@ function renderSuggest(){
   const a=(k)=>{ keys.add(k); return prevKeys.has(k)?'':'anim'; };
   let idx=0;
   const savedQ=S.q; S.q=raw; const scopeSave=S.scope; S.scope='world'; const res=compute(false); S.scope=scopeSave; S.q=savedQ;
-
-  // live intent chips: show the query resolving into cuisine/venue + location + category as you type
-  const live=[];
-  if(p.text) live.push(cap(p.text));
-  if(p.loc) live.push(p.loc.label);
-  else if(p.near) live.push('Near you');
-  if(p.cat) live.push(CAT[p.cat]);
-  else if(p.text){ const top=res.rows.find(r=>r.s>=60); if(top) live.push(CAT[top.m.cat]); }
-  if(live.length) html+=`<div class="livechips">${live.map((l,i)=>`<span class="token" style="--i:${i}">${esc(l)}</span>`).join('')}</div>`;
 
   // smart composite
   if((p.loc||p.near) && (p.text||p.cat)){
