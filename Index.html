@@ -154,15 +154,16 @@ mark{background:none;color:var(--ink);font-weight:700}
 /* popular hotspots */
 .hotspots{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
 .hotspots::-webkit-scrollbar{display:none}
-.hspot{position:relative;flex:none;width:138px;height:112px;border-radius:18px;overflow:hidden;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left;color:#fff;isolation:isolate}
+.hspot{position:relative;flex:none;width:138px;height:112px;border-radius:18px;overflow:hidden;padding:12px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#fff;isolation:isolate}
 .hspot::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 140% at 10% 100%,rgba(0,0,0,.4),transparent 60%),radial-gradient(70% 90% at 95% 0%,rgba(255,255,255,.22),transparent 55%);mix-blend-mode:overlay;pointer-events:none;z-index:-1}
 .hspot::after{content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;pointer-events:none;z-index:-1;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .hspot b{font-size:15.5px;font-weight:750;line-height:1.25;white-space:normal}
 .hspot small{font-size:12px;opacity:.85;margin-top:4px}
 
 /* trending */
-.trend-grid{display:flex;flex-wrap:wrap;gap:10px}
-.tcard{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.trend-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
+.trend-grid::-webkit-scrollbar{display:none}
+.tcard{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
 .tcard:active{transform:scale(.96)}
 .tcard-ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none}
 .tcard-ic svg{width:16px;height:16px}
@@ -699,21 +700,17 @@ function syncField(){ field.classList.toggle('has-value',!!input.value); }
 /* ---------------- idle ---------------- */
 function renderIdle(){
   setMode('idle'); hdr.classList.remove('shadow');
-  const cnt=c=>M.filter(m=>m.cat===c&&m.out.some(k=>AREA[k].city==='Dubai')).length;
   content.innerHTML=`<div class="view enter">
     ${S.recents.length?`<section class="sec collapse" id="recentSec"><div><div class="sec-h"><h3>Recent searches</h3><button class="link" data-act="clearrecents">Clear All</button></div>
       <div class="chips">${S.recents.map((r,i)=>`<button class="chip anim" style="--i:${i}" data-act="q" data-q="${esc(r)}">${ICON.hist}${esc(r)}</button>`).join('')}</div></div></section>`:''}
-    <section class="sec"><div class="sec-h"><h3>Search by category</h3></div>
-      <div class="cats">${Object.keys(CAT).map((c,i)=>`<button class="cat anim" style="--i:${i+2}" data-act="q" data-q="${CAT[c]}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="ct"><b>${CAT[c]}</b><small>${cnt(c)} in Dubai</small></span></button>`).join('')}</div>
-    </section>
     <section class="sec"><div class="sec-h"><h3>Popular hotspots near you</h3></div>
       <div class="hotspots">${HOTSPOTS.map(([k,q],i)=>{const a=AREA[k]; const[dk,lt]=paletteFor(k);
-        return `<button class="hspot anim" style="--i:${i+3};background:linear-gradient(150deg,${lt},${shade(dk,-10)})" data-act="q" data-q="${esc(q)}"><b>${esc(a.name)}</b><small>${fmtKm(a.km)}</small></button>`;
+        return `<button class="hspot anim" style="--i:${i+1};background:linear-gradient(150deg,${lt},${shade(dk,-10)})" data-act="q" data-q="${esc(q)}"><b>${esc(a.name)}</b><small>${fmtKm(a.km)}</small></button>`;
       }).join('')}</div>
     </section>
     <section class="sec"><div class="sec-h"><h3>Trending in Dubai</h3></div>
       <div class="trend-grid">${TRENDS.map(([t,cat],i)=>{const[bg,fg]=cat==='pin'?['#EEF0F5','#3B404C']:CATICON[cat];
-        return `<button class="tcard anim" style="--i:${i+4}" data-act="q" data-q="${esc(t)}"><span class="tcard-ic" style="background:${bg};color:${fg}">${cat==='pin'?ICON.pin:ICON[cat]}</span><span>${esc(t)}</span></button>`;
+        return `<button class="tcard anim" style="--i:${i+2}" data-act="q" data-q="${esc(t)}"><span class="tcard-ic" style="background:${bg};color:${fg}">${cat==='pin'?ICON.pin:ICON[cat]}</span><span>${esc(t)}</span></button>`;
       }).join('')}</div>
     </section>
   </div>`;
