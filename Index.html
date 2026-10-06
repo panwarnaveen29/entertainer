@@ -178,38 +178,43 @@ mark{background:none;color:var(--ink);font-weight:700}
 .banner svg{flex:none;margin-top:1px}
 .banner button{font-weight:700;text-decoration:underline}
 .list{display:flex;flex-direction:column;gap:12px}
-.card{background:var(--card);border-radius:20px;box-shadow:0 1px 2px rgba(20,30,60,.05),0 4px 14px -8px rgba(20,30,60,.12);position:relative;overflow:hidden;clip-path:inset(0 round 20px);transition:transform .15s}
-.card-main{display:block;cursor:pointer;text-align:left;width:100%}
+.card{background:var(--card);border-radius:16px;box-shadow:0 1px 2px rgba(20,30,60,.05),0 4px 14px -8px rgba(20,30,60,.12);position:relative;overflow:hidden;clip-path:inset(0 round 16px);transition:transform .15s}
+.row-main{display:flex;align-items:center}
+.card-main{display:flex;align-items:center;cursor:pointer;text-align:left;width:100%;flex:1;min-width:0}
+.card.compact .card-main{display:block}
 .card-main:active .info{background:#FBFBFC}
 .card:has(.card-main:active){transform:scale(.985)}
 .cbanner{position:relative;height:108px;overflow:hidden}
 .cbanner::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 140% at 10% 100%,rgba(0,0,0,.35),transparent 60%),radial-gradient(70% 90% at 95% 0%,rgba(255,255,255,.22),transparent 55%);mix-blend-mode:overlay;pointer-events:none}
 .cbanner::after{content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-.cbanner.sm{height:88px;width:88px;flex:none}
+.cbanner.sm{height:84px;width:84px;flex:none;border-radius:12px;margin:10px 0 10px 10px}
+.cbanner-ic{position:absolute;inset:0;display:grid;place-items:center;opacity:.5;pointer-events:none}
+.cbanner-ic svg{width:22px;height:22px;color:#fff}
 .b-rate{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:3px;background:var(--card);color:var(--ink);font-size:12px;font-weight:700;padding:4px 8px;border-radius:8px;box-shadow:0 2px 8px -2px rgba(0,0,0,.3)}
 .logo{width:68px;height:68px;border-radius:14px;flex:none;display:grid;place-items:center;text-align:center;line-height:1;overflow:hidden;border:1px solid var(--line);font-weight:800;letter-spacing:.02em}
 .logo.sm{width:44px;height:44px;border-radius:10px}
-.info{min-width:0;padding:13px 16px 12px;transition:background .15s}
-.nm{font-size:16.5px;font-weight:750;line-height:1.3;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.info{min-width:0;flex:1;padding:9px 14px 9px 12px;transition:background .15s}
+.card.compact .info{padding:13px 16px 12px}
+.nm{font-size:15px;font-weight:750;line-height:1.3;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.card.compact .nm{font-size:16.5px;margin-bottom:5px}
 .nm mark{color:var(--blue-ink);background:linear-gradient(transparent 62%,var(--blue-soft) 62%)}
-.cmeta{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmeta{font-size:12.5px;color:var(--muted);line-height:1.4}
 .cmeta b{color:var(--ink-2);font-weight:600}
 .cmeta .dot{opacity:.55;margin:0 1px}
 .cmeta .f-call{color:#8A5A0B}
 .cmeta .f-live{color:var(--green)}
-.coffer{margin-top:7px;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coffer{margin-top:4px;font-size:13px;color:var(--ink);line-height:1.4}
+.card.compact .coffer{font-size:13.5px;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .coffer b{font-weight:650}
-.coffer .csave{color:var(--muted);font-weight:500;margin-left:6px}
+.coffer .csave{color:var(--muted);font-weight:500;margin-left:6px;white-space:nowrap}
 .cmeta .rt{color:var(--ink);font-weight:700}
-.cloc{display:flex;align-items:center;gap:4px;margin-top:5px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden}
-.cloc span{overflow:hidden;text-overflow:ellipsis}
+.cloc{display:flex;align-items:center;gap:4px;margin-top:4px;font-size:12px;color:var(--muted)}
+.cloc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cloc svg{flex:none;width:12px;height:12px}
-.card.row .card-main{display:flex;align-items:center}
-.card.row .info{flex:1;min-width:0;padding:10px 14px 10px 12px;display:flex;flex-direction:column;justify-content:center}
-.card.row .nm{font-size:14.5px;margin-bottom:3px}
-.card.row .coffer{font-size:12.5px;margin-top:3px}
 .heart{position:absolute;top:10px;right:10px;width:32px;height:32px;display:grid;place-items:center;color:#fff;background:#23252E;border:1px solid rgba(255,255,255,.14);border-radius:50%;z-index:2}
 .heart.on{color:#E5384F;background:var(--card);border-color:var(--line)}
+.heart.plain{position:static;flex:none;width:36px;height:36px;color:var(--faint);background:none;border:none;margin-right:4px}
+.heart.plain.on{color:#E5384F;background:none}
 .heart.on svg{animation:pop .45s var(--spring)}
 .heart.on::after{content:"";position:absolute;inset:6px;border-radius:50%;border:2px solid #E5384F;animation:ring .5s ease-out forwards}
 @keyframes ring{from{transform:scale(.5);opacity:1}to{transform:scale(1.6);opacity:0}}
@@ -545,7 +550,8 @@ const PHOTO_DUO = [['#4A2E1F','#8C5A32'],['#2C3B2C','#587049'],['#3B2432','#7534
 const paletteFor=id=>{let h=0;for(let i=0;i<id.length;i++) h=(h*31+id.charCodeAt(i))>>>0; return PHOTO_DUO[h%PHOTO_DUO.length]};
 const photoBanner=(m,cls='')=>{const[dk,lt]=paletteFor(m.id);
   const bgCss=`radial-gradient(130% 110% at 14% 8%,${lt}99,transparent 55%),radial-gradient(120% 130% at 90% 95%,${shade(dk,-12)},transparent 60%),linear-gradient(150deg,${lt},${dk})`;
-  return `<div class="cbanner ${cls}" style="background:${bgCss}" aria-hidden="true"></div>`};
+  const ic=cls==='sm'?`<span class="cbanner-ic">${ICON[m.cat]}</span>`:'';
+  return `<div class="cbanner ${cls}" style="background:${bgCss}" aria-hidden="true">${ic}</div>`};
 
 const ICON = {
   pin:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
@@ -825,23 +831,27 @@ function card(x,i,p,opts={}){
   const more=moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>
       <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span></button>`:''}</div></div></div>`:'';
 
-  // first result in a list leads: a large banner and full detail. The rest run
-  // compact, a thumbnail beside the text, matching how the real app's list reads
-  // once you're past the one result that deserves a second look.
-  if(opts.row) return `<article class="card row ${opts.noAnim?'':'anim'}" style="--i:${i}">
-    <div class="card-main" role="button" tabindex="0" data-act="open" data-id="${m.id}" aria-label="${esc(m.name)}">
-      ${photoBanner(m,'sm')}
-      <div class="info">
-        <div class="nm">${hl(m.name,fold(p.text))}</div>
-        <div class="cmeta"><b class="rt">★ ${m.rating}</b><span class="dot">·</span>${esc(m.tags[0])}${flag}</div>
-        <div class="coffer"><b>${esc(m.offers[0][0])} · ${esc(m.offers[0][1])}</b><span class="csave">Save ${aed(m.save)}</span></div>
-        <div class="cloc">${ICON.pin}<span>${esc(near.name)}</span><span class="dot">·</span>${fmtKm(near.km)}</div>
+  // Every result reads the same way: a small thumbnail, name, rating, offer,
+  // distance. Rank is the signal — the best result is simply first, the way
+  // Google, Yelp and Maps all do it, instead of one result getting a giant
+  // banner and the rest getting squeezed.
+  if(!opts.compact) return `<article class="card ${opts.noAnim?'':'anim'}" style="--i:${i}">
+    <div class="row-main">
+      <div class="card-main" role="button" tabindex="0" data-act="open" data-id="${m.id}" aria-label="${esc(m.name)}">
+        ${photoBanner(m,'sm')}
+        <div class="info">
+          <div class="nm">${hl(m.name,fold(p.text))}</div>
+          <div class="cmeta"><b class="rt">★ ${m.rating}</b><span class="dot">·</span>${esc(m.tags[0])}${flag}</div>
+          <div class="coffer"><b>${esc(m.offers[0][0])} · ${esc(m.offers[0][1])}</b><span class="csave">Save ${aed(m.save)}</span></div>
+          <div class="cloc">${ICON.pin}<span>${esc(near.name)}</span><span class="dot">·</span>${fmtKm(near.km)}</div>
+        </div>
       </div>
+      <button class="heart plain ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
     </div>
     ${more}
   </article>`;
 
-  return `<article class="card ${opts.compact?'compact':''} ${opts.noAnim?'':'anim'}" style="--i:${i}">
+  return `<article class="card compact ${opts.noAnim?'':'anim'}" style="--i:${i}">
     <div class="card-main" role="button" tabindex="0" data-act="open" data-id="${m.id}" aria-label="${esc(m.name)}">
       ${photoBanner(m)}
       <div class="info">
@@ -874,10 +884,10 @@ function renderResults(animate){
     html+=`<div class="banner">${ICON.info}<span>Nothing in ${SCOPE[S.scope]==='Near me'?'your area':SCOPE[S.scope]} for “${esc(S.q)}”. Here ${outside.length===1?'is the match':`are ${outside.length} matches`} further away.</span></div>`;
     S.showOutside=true;
   }
-  if(list.length) html+=`<div class="list">${list.map((x,i)=>card(x,i,p,{noAnim:!animate,row:i>0})).join('')}</div>`;
+  if(list.length) html+=`<div class="list">${list.map((x,i)=>card(x,i,p,{noAnim:!animate})).join('')}</div>`;
   if(outside.length){
     if(list.length) html+=`<button class="outside-btn ${S.showOutside?'open':''}" data-act="outside"><span>${outsideLabel()} · ${outside.length} more ${ICON.chev}</span></button>`;
-    html+=`<div class="collapse ${S.showOutside?'':'shut'}"><div><div class="list">${outside.map((x,i)=>card(x,i,p,{noAnim:true,row:true})).join('')}</div></div></div>`;
+    html+=`<div class="collapse ${S.showOutside?'':'shut'}"><div><div class="list">${outside.map((x,i)=>card(x,i,p,{noAnim:true})).join('')}</div></div></div>`;
   }
   if(!list.length && !outside.length){
     const wider = rank(S.scope)<3 ? `<button class="primary" data-act="setscope" data-v="world">${ICON.globe}Search worldwide</button>`:'';
