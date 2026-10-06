@@ -195,6 +195,14 @@ mark{background:none;color:var(--ink);font-weight:700}
 .cbanner{position:relative;height:150px;overflow:hidden}
 .cbanner.photo{background-size:cover;background-position:center}
 .banner-wrap .cbanner{height:150px;border-radius:16px}
+.pgal{position:relative;height:150px;border-radius:16px;overflow:hidden}
+.pgal-track{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.pgal-track::-webkit-scrollbar{display:none}
+.pgal-slide{flex:none;width:100%;height:100%;scroll-snap-align:start;background-size:cover;background-position:center}
+.pgal::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 140% at 10% 100%,rgba(0,0,0,.35),transparent 60%),radial-gradient(70% 90% at 95% 0%,rgba(255,255,255,.22),transparent 55%);mix-blend-mode:overlay;pointer-events:none}
+.pgal-dots{position:absolute;left:0;right:0;bottom:9px;display:flex;justify-content:center;gap:5px;pointer-events:none;z-index:1}
+.pgal-dot{width:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.5);transition:width .15s,background .15s}
+.pgal-dot.on{width:14px;background:#fff}
 .cbanner::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 140% at 10% 100%,rgba(0,0,0,.35),transparent 60%),radial-gradient(70% 90% at 95% 0%,rgba(255,255,255,.22),transparent 55%);mix-blend-mode:overlay;pointer-events:none}
 .cbanner::after{content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .card.compact .cbanner{height:92px}
@@ -599,6 +607,21 @@ const photoBanner=(m,cls='',i=0)=>{
   const bgCss=`radial-gradient(130% 110% at 14% 8%,${lt}99,transparent 55%),radial-gradient(120% 130% at 90% 95%,${shade(dk,-12)},transparent 60%),linear-gradient(150deg,${lt},${dk})`;
   return `<div class="cbanner ${cls}" style="background:${bgCss}" aria-hidden="true"><span class="cbanner-ic">${ICON[m.cat]}</span></div>`};
 
+// Four photos per card, swipeable, picked the same way as the single banner photo
+// (by list position through the fixed shuffle cycle) so the lead photo still never
+// repeats between adjacent cards. Categories without a real photo set (attractions,
+// for now) fall back to the single gradient banner with no gallery.
+const photoGallery=(m,i)=>{
+  const set = m.cat==='dining'?[DINING_PHOTOS,DINING_ORDER]:m.cat==='hotels'?[HOTEL_PHOTOS,HOTEL_ORDER]:null;
+  if(!set) return photoBanner(m,'',i);
+  const[photos,order]=set;
+  const slides=[0,1,2,3].map(k=>photos[order[(i+k)%order.length]]);
+  return `<div class="pgal">
+    <div class="pgal-track">${slides.map(src=>`<div class="pgal-slide" style="background-image:url('${src}')"></div>`).join('')}</div>
+    <div class="pgal-dots">${slides.map((_,k)=>`<span class="pgal-dot ${k===0?'on':''}"></span>`).join('')}</div>
+  </div>`;
+};
+
 const ICON = {
   pin:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
   hist:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>',
@@ -885,7 +908,7 @@ function card(x,i,p,opts={}){
   if(!opts.compact) return `<article class="card ${opts.noAnim?'':'anim'}" style="--i:${i}">
     <div class="card-main" role="button" tabindex="0" data-act="open" data-id="${m.id}" aria-label="${esc(m.name)}">
       <div class="banner-wrap">
-        ${photoBanner(m,'',i)}
+        ${photoGallery(m,i)}
         <span class="cbadge">${esc(m.offers[0][0])}</span>
         <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
       </div>
@@ -1064,6 +1087,14 @@ input.addEventListener('focus',()=>{ if(S.mode!=='typing'){ prevKeys=new Set(); 
 input.addEventListener('input',()=>{ syncField(); renderSuggest(); });
 input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if(input.value.trim()) submit(); } if(e.key==='Escape'){ cancel(); } });
 content.addEventListener('scroll',()=>hdr.classList.toggle('shadow',content.scrollTop>4));
+// A card's photo strip scrolls inside the results list; scroll events don't bubble, but a
+// capture-phase listener on an ancestor still sees them, so one listener here covers every
+// card's gallery instead of wiring one up per card on each render.
+content.addEventListener('scroll',e=>{
+  const track=e.target; if(!track.classList || !track.classList.contains('pgal-track')) return;
+  const idx=Math.round(track.scrollLeft/track.clientWidth);
+  track.parentElement.querySelectorAll('.pgal-dot').forEach((d,i)=>d.classList.toggle('on',i===idx));
+},true);
 function cancel(){ input.blur(); input.value=''; S.q=''; syncField(); renderIdle(); }
 
 document.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.matches('.card-main')){ e.preventDefault(); e.target.click(); } if(e.key==='Escape'&&sheet.classList.contains('on')) closeSheet(); });
