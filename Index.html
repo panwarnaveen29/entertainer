@@ -131,6 +131,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .chip.gone{animation:chipOut .28s var(--ease) forwards;animation-delay:calc(var(--i,0)*45ms)}
 @keyframes chipOut{to{transform:scale(.7);opacity:0}}
 .collapse{display:grid;grid-template-rows:1fr;transition:grid-template-rows .35s var(--ease),opacity .25s}
+.card-main+.collapse{margin-top:6px}
 .collapse>div{overflow:hidden}
 .collapse.shut{grid-template-rows:0fr;opacity:0}
 
@@ -229,7 +230,8 @@ mark{background:none;color:var(--ink);font-weight:700}
 .cline1{color:var(--ink);margin-top:2px}
 .cline1 b{font-weight:650}
 .c1-main{opacity:.8}
-.cline2{margin-top:4px}
+.cline2{margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cline2-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rate-ic{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:13px;line-height:1}
 .cline1 .dot,.cline2 .dot{opacity:.55;margin:0 1px}
 .cline1 .f-call{color:#8A5A0B}
@@ -251,7 +253,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 @keyframes ring{from{transform:scale(.5);opacity:1}to{transform:scale(1.6);opacity:0}}
 .heart svg path{fill:none;stroke:currentColor}
 .heart.on svg path{fill:currentColor}
-.cmore{display:flex;align-items:center;gap:6px;width:100%;padding:11px 0 13px;font-size:12.5px;font-weight:600;color:var(--blue)}
+.cmore{display:flex;align-items:center;gap:4px;flex:none;font-size:12.5px;font-weight:600;color:var(--blue);white-space:nowrap;padding:6px 0}
 .cmore svg{transition:transform .3s var(--ease)}
 .cmore.open svg{transform:rotate(180deg)}
 .outlets{padding:0}
@@ -415,7 +417,6 @@ mark{background:none;color:var(--ink);font-weight:700}
         <li><span><b>One card per merchant.</b> Offers belong to the merchant. Outlets fold underneath, and picking a different branch never reshuffles the list.</span></li>
         <li><span><b>Scope widens itself.</b> Naming a far place expands the search instead of returning nothing.</span></li>
         <li><span><b>Real places, not category tiles.</b> Trending in Dubai surfaces actual venues with real photos, each opening straight to its offers, no extra search step.</span></li>
-        <li><span><b>Redeem, not book.</b> A 4-digit PIN in person. Hotels need a call ahead first.</span></li>
       </ol>
     </div>
     <div>
@@ -909,8 +910,8 @@ function card(x,i,p,opts={}){
   const shown=others.filter(o=>o.k!==near.k).slice(0,3), hiddenN=moreN-shown.length;
   const flag=m.reserve==='instant'?`<span class="dot">·</span><b class="f-live">Live booking</b>`
     :m.reserve==='call'?`<span class="dot">·</span><b class="f-call">Call ahead</b>`:'';
-  const more=moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>
-      <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="pickoutlet" data-id="${m.id}" data-k="${o.k}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span><span class="o-arrow">${ICON.arrow}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span><span class="o-arrow">${ICON.arrow}</span></button>`:''}</div></div></div>`:'';
+  const moreBtn=moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>`:'';
+  const moreCollapse=moreN>0&&!opts.compact?`<div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="pickoutlet" data-id="${m.id}" data-k="${o.k}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span><span class="o-arrow">${ICON.arrow}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span><span class="o-arrow">${ICON.arrow}</span></button>`:''}</div></div></div>`:'';
 
   // Every result reads the same way: a photo banner, name, rating, offer,
   // distance. Rank is the signal. The best result is simply first, the way
@@ -926,10 +927,10 @@ function card(x,i,p,opts={}){
       <div class="info">
         <div class="nm-row"><div class="nm">${hl(m.name,fold(p.text))}</div><span class="crate"><span class="rate-ic">😁</span><b>${m.rating}</b></span></div>
         <div class="cline1"><span class="c1-main"><b>${esc(m.offers[0][1])}</b><span class="dot">·</span>Save ${aed(m.save)}</span>${flag}</div>
-        <div class="cline2">${esc(near.name)}<span class="dot">·</span>${fmtKm(near.km)}</div>
+        <div class="cline2"><span class="cline2-txt">${fmtKm(near.km)}<span class="dot">·</span>${esc(near.name)}</span>${moreBtn}</div>
       </div>
     </div>
-    ${more}
+    ${moreCollapse}
   </article>`;
 
   return `<article class="card compact ${opts.noAnim?'':'anim'}" style="--i:${i}">
@@ -943,7 +944,7 @@ function card(x,i,p,opts={}){
     </div>
     <span class="b-rate"><span class="rate-ic">😁</span> ${m.rating}</span>
     <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
-    ${more}
+    ${moreCollapse}
   </article>`;
 }
 
@@ -1130,7 +1131,7 @@ document.addEventListener('click',e=>{
       break;
     case 'open': openMerchant(d.id); break;
     case 'heart': { if(S.saved.has(d.id)){ S.saved.delete(d.id); el.classList.remove('on'); } else { S.saved.add(d.id); el.classList.add('on'); toast(`${ICON.heart.replace('stroke-width="2"','stroke-width="2" fill="#E5384F" stroke="#E5384F"')}<span>Saved ${esc(BYID[d.id].name)} to your list</span>`,1800); } break; }
-    case 'locs': { const open=!S.open.has(d.id); open?S.open.add(d.id):S.open.delete(d.id); el.classList.toggle('open',open); el.nextElementSibling.classList.toggle('shut',!open); break; }
+    case 'locs': { const open=!S.open.has(d.id); open?S.open.add(d.id):S.open.delete(d.id); el.classList.toggle('open',open); el.closest('.card').querySelector('.collapse').classList.toggle('shut',!open); break; }
     case 'pickoutlet': { S.outletSel[d.id]=d.k; S.open.add(d.id); renderResults(false); break; }
     case 'outside': S.showOutside=!S.showOutside; el.classList.toggle('open',S.showOutside); el.nextElementSibling.classList.toggle('shut',!S.showOutside); break;
     case 'tab': if(S.tab!==d.t){ S.tab=d.t; S.pin=0; renderResults(true); } break;
