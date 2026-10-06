@@ -973,7 +973,7 @@ function openMerchant(id){
       ?`<button class="primary" data-act="toast" data-msg="Opens live rates for your dates">Check live availability</button><p>One of the few places with real-time booking in the app</p>`
       :m.reserve==='call'
       ?`<button class="primary" data-act="toast" data-msg="Calls ${esc(near.name)} to book">Call to book</button><p>Mention your ENTERTAINER offer when booking, then show it again at check-in to redeem</p>`
-      :`<button class="secondary" data-act="toast" data-msg="Opens directions to ${esc(near.name)}">Get directions</button><p>Show this offer when you pay. Staff enter a 4-digit PIN to apply it</p>`}</div>`);
+      :`<p>Show this offer when you pay. Staff enter a 4-digit PIN to apply it</p>`}</div>`);
   const el=$('#countup'); const target=m.save; const t0=performance.now(); const dur=700;
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   (function step(t){ const k=reduce?1:Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-k,3); el.textContent=Math.round(target*e).toLocaleString('en-US'); if(k<1) requestAnimationFrame(step); })(t0);
