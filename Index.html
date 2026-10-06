@@ -70,8 +70,6 @@ mark{background:none;color:var(--ink);font-weight:700}
 .bar{display:flex;align-items:center;gap:0}
 .icon-btn{width:40px;height:44px;display:grid;place-items:center;flex:none;border-radius:12px;transition:max-width .3s var(--ease),opacity .2s,margin .3s var(--ease),transform .15s;max-width:40px;overflow:hidden}
 .icon-btn:active{transform:scale(.9)}
-.back{max-width:0;opacity:0;margin-right:0}
-.screen[data-mode="results"] .back{max-width:40px;opacity:1;margin-right:4px;margin-left:-8px}
 .field{flex:1;min-width:0;height:46px;display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--glass-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:14px;position:relative;box-shadow:var(--glass-highlight);transition:border-color .2s,box-shadow .2s,background .2s}
 .field:focus-within{border-color:var(--blue);box-shadow:var(--glass-highlight),0 0 0 4px var(--blue-soft)}
 .field svg{flex:none;color:var(--faint)}
@@ -432,7 +430,6 @@ mark{background:none;color:var(--ink);font-weight:700}
 
       <header class="hdr" id="hdr">
         <div class="bar">
-          <button class="icon-btn back" data-act="back" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
           <label class="field" id="field">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
             <input id="q" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search offers, places and venues">
@@ -1058,7 +1055,6 @@ document.addEventListener('click',e=>{
     case 'sugg-m': { const m=BYID[d.id]; input.blur(); submit(m.name); setTimeout(()=>openMerchant(m.id),480); break; }
     case 'clear': e.preventDefault(); input.value=''; syncField(); input.focus(); renderSuggest(); break;
     case 'cancel': cancel(); break;
-    case 'back': input.value=''; S.q=''; syncField(); closeSheet(); renderIdle(); break;
     case 'focus': if(S.mode==='idle') input.focus(); else { closeSheet(); input.value=''; S.q=''; syncField(); renderIdle(); setTimeout(()=>input.focus(),50);} break;
     case 'nav': toast(`${ICON.info}<span>This prototype covers the search journey.</span>`); break;
     case 'clearrecents': {
