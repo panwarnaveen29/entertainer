@@ -244,12 +244,15 @@ mark{background:none;color:var(--ink);font-weight:700}
 .cmore svg{transition:transform .3s var(--ease)}
 .cmore.open svg{transform:rotate(180deg)}
 .outlets{padding:0 16px}
-.outlet{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px dashed var(--line);font-size:13px;width:100%;text-align:left}
+.outlet{display:flex;align-items:center;gap:10px;padding:11px 16px;margin:0 -16px;width:calc(100% + 32px);border-top:1px dashed var(--line);font-size:13px;text-align:left;border-radius:12px;transition:background .12s}
 .outlet:first-child{border-top:0}
+.outlet:active{background:var(--chip)}
 .outlet .o-n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
 .outlet .o-k{color:var(--muted);font-variant-numeric:tabular-nums}
 .outlet .o-tag{font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:1px 6px;border-radius:999px}
 .outlet.dim .o-n{color:var(--muted)}
+.outlet .o-arrow{flex:none;color:var(--faint)}
+.outlet .o-arrow svg{width:13px;height:13px;display:block}
 .outside-btn{display:flex;align-items:center;gap:10px;width:100%;margin:18px 0 10px;font-size:13px;font-weight:600;color:var(--ink-2)}
 .outside-btn::before,.outside-btn::after{content:"";flex:1;height:1px;background:var(--line)}
 .outside-btn span{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
@@ -833,7 +836,7 @@ function card(x,i,p,opts={}){
   const flag=m.reserve==='instant'?`<span class="dot">·</span><b class="f-live">Live booking</b>`
     :m.reserve==='call'?`<span class="dot">·</span><b class="f-call">Call ahead</b>`:'';
   const more=moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>
-      <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span></button>`:''}</div></div></div>`:'';
+      <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span><span class="o-arrow">${ICON.arrow}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span><span class="o-arrow">${ICON.arrow}</span></button>`:''}</div></div></div>`:'';
 
   // Every result reads the same way: a photo banner, name, rating, offer,
   // distance. Rank is the signal. The best result is simply first, the way
