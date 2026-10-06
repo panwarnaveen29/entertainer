@@ -667,7 +667,10 @@ let prevKeys=new Set();
 function renderSuggest(){
   setMode('typing');
   const raw=input.value; const qn=norm(raw);
-  if(!qn){ prevKeys=new Set(); renderIdleInTyping(); return; }
+  // One letter is coincidence, not intent — "d" word-matches "Fine dining", "Observation
+  // deck" and the "Dining" category all at once, none of them meaningfully about "d".
+  // Wait for enough signal before attempting to resolve it into anything structured.
+  if(qn.length<2){ prevKeys=new Set(); renderIdleInTyping(); return; }
   const p=parse(raw); const keys=new Set(); let html='';
   const a=(k)=>{ keys.add(k); return prevKeys.has(k)?'':'anim'; };
   let idx=0;
