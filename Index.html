@@ -608,7 +608,7 @@ const SCOPE_SUB={near:'Within 10 km of you',dubai:'Your city',uae:'Every emirate
 const SCOPE_INLINE={near:'near you',dubai:'in Dubai',uae:'in the UAE',world:'worldwide'};
 const SORTS={relevance:'Best match',nearest:'Distance',rating:'Rating',newest:'Newest'};
 const S = {mode:'idle',q:'',scope:'dubai',sort:'relevance',tab:'all',rating:false,filters:new Set(),bookable:false,view:'list',
-  recents:['Pizza','marina','Dubai Mall'],saved:new Set(),showOutside:false,open:new Set(),tagChips:[],pin:0,lastCount:null};
+  recents:['Pizza','marina','Dubai Mall'],saved:new Set(),showOutside:false,open:new Set(),tagChips:[],pin:0,lastCount:null,outletSel:{}};
 const rank = s=>SCOPES.indexOf(s);
 const scopeOf = o=>o.city==='Maldives'?'world':o.city!=='Dubai'?'uae':o.km<=10?'near':'dubai';
 const inScope = o=>rank(scopeOf(o))<=rank(S.scope);
@@ -666,7 +666,11 @@ function compute(applyFilters=true){
     const shared=candidates.find(x=>!(x.s===45&&x.fix===x.m.name));
     fix=(shared||candidates[0]||{}).fix||null;
   }
-  rows.forEach(x=>{ x.inOuts=x.outs.filter(inScope); x.near=x.inOuts[0]||x.outs[0]; });
+  // x.near drives ranking (always the true nearest in-scope outlet, so picking a
+  // different branch to display never reshuffles the list). x.shown is what the
+  // card and map pin actually display, overridden when a specific outlet is picked.
+  rows.forEach(x=>{ x.inOuts=x.outs.filter(inScope); x.near=x.inOuts[0]||x.outs[0];
+    const picked=S.outletSel[x.m.id]; x.shown=(picked&&x.outs.find(o=>o.k===picked))||x.near; });
   if(applyFilters) rows=rows.filter(x=>(!S.rating||x.m.rating>=4.5)&&(!S.bookable||x.m.reserve==='instant')&&[...S.filters].every(f=>x.m.tags.includes(f)));
   const sorter={relevance:(a,b)=>b.s-a.s||a.near.km-b.near.km,nearest:(a,b)=>a.near.km-b.near.km,rating:(a,b)=>b.m.rating-a.m.rating,newest:(a,b)=>M.indexOf(b.m)-M.indexOf(a.m)}[S.sort];
   rows.sort(sorter);
@@ -827,16 +831,16 @@ function renderHeaderRes(r){
 function moveInd(){ const on=$('#tabs .tab.on'), ind=$('#tabInd'); if(!on||!ind) return; ind.style.left=on.offsetLeft+'px'; ind.style.width=on.offsetWidth+'px'; }
 
 function card(x,i,p,opts={}){
-  const m=x.m, near=x.near, others=(x.inOuts.length?x.outs:x.outs);
+  const m=x.m, near=x.shown, others=(x.inOuts.length?x.outs:x.outs);
   const open=S.open.has(m.id);
   const moreN=others.length-1;
   // a merchant can have dozens of outlets. List three, then hand off to the map
   // rather than turning the card into a scroll of outlet rows.
-  const shown=others.slice(1,4), hiddenN=moreN-shown.length;
+  const shown=others.filter(o=>o.k!==near.k).slice(0,3), hiddenN=moreN-shown.length;
   const flag=m.reserve==='instant'?`<span class="dot">·</span><b class="f-live">Live booking</b>`
     :m.reserve==='call'?`<span class="dot">·</span><b class="f-call">Call ahead</b>`:'';
   const more=moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>
-      <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span><span class="o-arrow">${ICON.arrow}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span><span class="o-arrow">${ICON.arrow}</span></button>`:''}</div></div></div>`:'';
+      <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="pickoutlet" data-id="${m.id}" data-k="${o.k}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span><span class="o-arrow">${ICON.arrow}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span><span class="o-arrow">${ICON.arrow}</span></button>`:''}</div></div></div>`:'';
 
   // Every result reads the same way: a photo banner, name, rating, offer,
   // distance. Rank is the signal. The best result is simply first, the way
@@ -921,12 +925,12 @@ function renderResults(animate){
 
 /* ---------------- map ---------------- */
 function renderMap(list,outside,p){
-  const pts=list.filter(x=>x.near.x!=null);
+  const pts=list.filter(x=>x.shown.x!=null);
   const off=list.length-pts.length+outside.length;
   S.pin=Math.min(S.pin,Math.max(0,list.length-1));
   const pinW=t=>14+t.length*6.3;
   const pins=pts.map((x,i)=>{ const t=aed(x.m.save); const w=pinW(t); const li=list.indexOf(x);
-    return `<g class="pin ${li===S.pin?'on':''}" data-act="pin" data-i="${li}" transform="translate(${x.near.x},${x.near.y})"><g class="pin-in" style="animation-delay:${i*55}ms"><g class="pin-sc">
+    return `<g class="pin ${li===S.pin?'on':''}" data-act="pin" data-i="${li}" transform="translate(${x.shown.x},${x.shown.y})"><g class="pin-in" style="animation-delay:${i*55}ms"><g class="pin-sc">
       <path d="M-5 -9 L0 -2 L5 -9Z" fill="#fff"/><rect x="${-w/2}" y="-31" width="${w}" height="23" rx="11.5" fill="#fff" stroke="rgba(20,30,60,.12)"/>
       <text x="0" y="-15.5" text-anchor="middle" font-size="11" font-weight="700" fill="#121318" font-family="Inter,-apple-system,sans-serif">${t}</text></g></g></g>`; }).join('');
   content.innerHTML=`<div class="mapwrap">
@@ -1060,6 +1064,7 @@ document.addEventListener('click',e=>{
     case 'open': openMerchant(d.id); break;
     case 'heart': { if(S.saved.has(d.id)){ S.saved.delete(d.id); el.classList.remove('on'); } else { S.saved.add(d.id); el.classList.add('on'); toast(`${ICON.heart.replace('stroke-width="2"','stroke-width="2" fill="#E5384F" stroke="#E5384F"')}<span>Saved ${esc(BYID[d.id].name)} to your list</span>`,1800); } break; }
     case 'locs': { const open=!S.open.has(d.id); open?S.open.add(d.id):S.open.delete(d.id); el.classList.toggle('open',open); el.nextElementSibling.classList.toggle('shut',!open); break; }
+    case 'pickoutlet': { S.outletSel[d.id]=d.k; S.open.add(d.id); renderResults(false); break; }
     case 'outside': S.showOutside=!S.showOutside; el.classList.toggle('open',S.showOutside); el.nextElementSibling.classList.toggle('shut',!S.showOutside); break;
     case 'tab': if(S.tab!==d.t){ S.tab=d.t; S.pin=0; renderResults(true); } break;
     case 'rating': S.rating=!S.rating; renderResults(false); break;
