@@ -486,7 +486,8 @@ const M = [
  ['wave','Wave Kingdom Waterpark','attractions',['Waterpark','Kids','Outdoor','Family'],4.7,'Day pass AED 299',598,[['Buy 1 Get 1','Day passes','Adults and kids']],['palm'],['#1E9BD7','#fff','WAVE<br><span style="font-size:9px;letter-spacing:.15em">KINGDOM</span>','Inter,sans-serif',14],null],
  ['snow','Snow Peak','attractions',['Snow park','Kids','Indoor'],4.5,'Sessions AED 220',440,[['Buy 1 Get 1','Snow Classic','2-hour session']],['moe'],['#E8F4FF','#1A5BA8','❄<br><span style="font-size:10px;letter-spacing:.12em">SNOW PEAK</span>','Inter,sans-serif',22],null],
  ['dune','Dune Riders Safari','attractions',['Desert safari','Outdoor','Adventure'],4.6,'From AED 250',500,[['Buy 1 Get 1','Evening safari','BBQ dinner and pickup']],['desert'],['#D98A3A','#fff','DUNE<br>RIDERS','Inter,sans-serif',12],null],
- ['yasadv','Yas Adventure Park','attractions',['Theme park','Kids','Rides'],4.8,'Day ticket AED 345',690,[['Buy 1 Get 1','Day tickets','Show at entry, PIN redemption']],['yas'],['#C3122F','#FFD400','YAS<br><span style="font-size:9px;letter-spacing:.1em">ADVENTURE</span>','Inter,sans-serif',15],null]
+ ['yasadv','Yas Adventure Park','attractions',['Theme park','Kids','Rides'],4.8,'Day ticket AED 345',690,[['Buy 1 Get 1','Day tickets','Show at entry, PIN redemption']],['yas'],['#C3122F','#FFD400','YAS<br><span style="font-size:9px;letter-spacing:.1em">ADVENTURE</span>','Inter,sans-serif',15],null],
+ ['grounds','Common Grounds','dining',['Cafe','Coffee','Breakfast'],4.3,'AED 45 avg',45,[['Bonus offer','Coffee','Reusable up to 4x a day'],['Buy 1 Get 1','Pastries','All day']],['dubaimall','skyplaza','businessbay','marina','jbr','citywalk','hills','moe','festival'],['#3A2E22','#F2E4CF','COMMON<br><span style="font-size:9px;letter-spacing:.1em">GROUNDS</span>','Georgia,serif',12],null]
 ].map(r=>({id:r[0],name:r[1],cat:r[2],tags:r[3],rating:r[4],price:r[5],save:r[6],offers:r[7],out:r[8],logo:r[9],reserve:r[10]||null}));
 const BYID = Object.fromEntries(M.map(m=>[m.id,m]));
 
@@ -799,6 +800,9 @@ function card(x,i,p,opts={}){
   const m=x.m, near=x.near, others=(x.inOuts.length?x.outs:x.outs);
   const open=S.open.has(m.id);
   const moreN=others.length-1;
+  // a merchant can have dozens of outlets — list three, then hand off to the map
+  // rather than turning the card into a scroll of outlet rows.
+  const shown=others.slice(1,4), hiddenN=moreN-shown.length;
   const flag=m.reserve==='instant'?`<span class="dot">·</span><b class="f-live">Live booking</b>`
     :m.reserve==='call'?`<span class="dot">·</span><b class="f-call">Call ahead</b>`:'';
   return `<article class="card ${opts.compact?'compact':''} ${opts.noAnim?'':'anim'}" style="--i:${i}">
@@ -813,7 +817,7 @@ function card(x,i,p,opts={}){
     <span class="b-rate">★ ${m.rating}</span>
     <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
     ${moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>
-      <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${others.slice(1).map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}</div></div></div>`:''}
+      <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${shown.map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}${hiddenN>0?`<button class="outlet" data-act="view">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}<span class="o-n">See all ${others.length} on map</span></button>`:''}</div></div></div>`:''}
   </article>`;
 }
 
