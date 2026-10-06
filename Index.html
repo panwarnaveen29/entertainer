@@ -158,8 +158,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .trow+.trow{margin-top:10px}
 .tcard{flex:none;display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
 .tcard:active{transform:scale(.96)}
-.tcard-ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none}
-.tcard-ic svg{width:16px;height:16px}
+.tcard-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;font-size:20px;line-height:1;background:#EFEAE1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 
 /* suggestions */
 .sg-group{margin-top:14px}
@@ -621,6 +620,7 @@ const ICON = {
   bolt:'<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 11-14h-7z"/></svg>'
 };
 const CATICON = {dining:['#FFF1E2','#C2620B'],hotels:['#E8F0FF','#2148D6'],attractions:['#F3E9FF','#7A33C9']};
+const CAT_EMOJI = {dining:'🥘',hotels:'🏨',attractions:'🎟️'};
 const HOTSPOTS=[['dubaimall','dubai mall'],['citywalk','city walk'],['hills','dubai hills'],['marina','marina'],['jbr','jbr'],['palm','palm']];
 const TRENDS=['fogo','palmshore','skydeck','marinasocial','wave','loft'];
 
@@ -729,8 +729,8 @@ function idleSections(){
       }).join('')}</div>
     </section>
     <section class="sec"><div class="sec-h"><h3>Trending in Dubai</h3></div>
-      <div class="trend-grid">${[0,1].map(row=>`<div class="trow">${TRENDS.filter((_,i)=>i%2===row).map((id,i)=>{const m=BYID[id],cat=m.cat,[bg,fg]=CATICON[cat];
-        return `<button class="tcard anim" style="--i:${i*2+row+2}" data-act="open" data-id="${id}"><span class="tcard-ic" style="background:${bg};color:${fg}">${ICON[cat]}</span><span>${esc(m.name)}</span></button>`;
+      <div class="trend-grid">${[0,1].map(row=>`<div class="trow">${TRENDS.filter((_,i)=>i%2===row).map((id,i)=>{const m=BYID[id],cat=m.cat;
+        return `<button class="tcard anim" style="--i:${i*2+row+2}" data-act="open" data-id="${id}"><span class="tcard-ic">${CAT_EMOJI[cat]}</span><span>${esc(m.name)}</span></button>`;
       }).join('')}</div>`).join('')}</div>
     </section>`;
 }
