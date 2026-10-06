@@ -348,14 +348,14 @@ mark{background:none;color:var(--ink);font-weight:700}
       <div class="eyebrow">ENTERTAINER · Search redesign</div>
       <h1>Find the exact offer you came for</h1>
     </div>
-    <p>The app already parses "pizza near me" into words. What it doesn't do is rank by what those words mean — in testing, that search surfaced a spa before the pizza places, because matching is closer to catalogue search than to intent search. This redesign makes the understanding explicit and ranks on it, on top of the merchant-per-outlet repeats and the scope that's never shown.</p>
+    <p>The app already parses "pizza near me" into words. What it doesn't do is rank by what those words mean. In testing, that search put a spa ahead of the pizza places, because it's matching text, not understanding intent. This redesign makes the understanding explicit and ranks on it, on top of the merchant-per-outlet repeats and the scope that's never shown.</p>
     <div>
       <h2>What changed</h2>
       <ol>
-        <li><span><b>Understood intent, shown as such.</b> "Pizza near me" resolves to <b>Pizza · Near you</b> as a visible chip, not silently discarded words — weak matches drop out and proximity ranks what's left, so a spa can't outrank the pizza places.</span></li>
-        <li><span><b>One card per merchant.</b> Offers belong to the merchant — outlets fold underneath, labelled the way the catalogue is: outlets, not "locations."</span></li>
+        <li><span><b>Understood intent, shown as such.</b> "Pizza near me" resolves to <b>Pizza · Near you</b> as a visible chip, not silently discarded words. Weak matches drop out, and proximity ranks what's left, so a spa can't outrank the pizza places.</span></li>
+        <li><span><b>One card per merchant.</b> Offers belong to the merchant. Outlets fold underneath, labelled the way the catalogue is: outlets, not "locations."</span></li>
         <li><span><b>Scope widens itself.</b> Naming a far place expands the search instead of returning nothing.</span></li>
-        <li><span><b>Redeem, not book.</b> A 4-digit PIN in person — hotels need a call ahead first.</span></li>
+        <li><span><b>Redeem, not book.</b> A 4-digit PIN in person. Hotels need a call ahead first.</span></li>
       </ol>
     </div>
     <div>
@@ -797,7 +797,7 @@ function card(x,i,p,opts={}){
       <div class="info">
         <div class="nm">${hl(m.name,fold(p.text))}</div>
         <div class="cmeta">${esc(m.tags[0])}<span class="dot">·</span>${fmtKm(near.km)}<span class="dot">·</span><b>${esc(near.name)}</b>${flag}</div>
-        <div class="coffer"><b>${esc(m.offers[0][0])} — ${esc(m.offers[0][1])}</b><span class="csave">Save ${aed(m.save)}</span></div>
+        <div class="coffer"><b>${esc(m.offers[0][0])} · ${esc(m.offers[0][1])}</b><span class="csave">Save ${aed(m.save)}</span></div>
       </div>
     </div>
     <span class="b-rate">★ ${m.rating}</span>
@@ -893,13 +893,13 @@ function openMerchant(id){
     <div class="sh-head">${logo(m)}<div style="min-width:0"><h2>${esc(m.name)}</h2><p>${ICON.star} ${m.rating} · ${m.tags.join(' · ')}</p><p>${esc(m.price)}</p></div></div>
     <div class="savebig"><div><small>Save up to</small><b>AED <span id="countup">0</span></b></div><span class="tag">${m.offers.length} offer${m.offers.length>1?'s':''}</span></div>
     <div class="sh-sec"><h4>Offers</h4>${m.offers.map(([b,t,s],i)=>`<div class="offer-row anim" style="--i:${i+1}"><span class="badge">${esc(b)}</span><span class="t"><b>${esc(t)}</b><small>${esc(s)}</small></span></div>`).join('')}
-      <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">${m.offers.some(o=>o[0]==='Buy 1 Get 1')?'Buy 1 Get 1 Free needs 2+ guests to redeem — groups of 8+ can use up to 4 offers in one visit.':'Offers are valid at every location below.'}</p></div>
+      <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">${m.offers.some(o=>o[0]==='Buy 1 Get 1')?'Buy 1 Get 1 Free needs 2+ guests to redeem. Groups of 8+ can use up to 4 offers in one visit.':'Offers are valid at every location below.'}</p></div>
     <div class="sh-sec"><h4>${outs.length} location${outs.length>1?'s':''}</h4>${outs.map(o=>`<div class="loc-row ${p.loc&&inLoc(o,p.loc)?'hit':''}"><span style="color:var(--muted)">${ICON.pin}</span><span class="t"><span>${esc(o.name)}</span><small>${esc(o.city)}${o===near?' · Nearest to you':''}</small></span><span class="k">${fmtKm(o.km)}</span><button class="dir" data-act="toast" data-msg="Opens directions in Maps">Directions</button></div>`).join('')}</div>
     <div class="sh-foot">${m.reserve==='instant'
       ?`<button class="primary" data-act="toast" data-msg="Opens live rates for your dates">Check live availability</button><p>One of the few places with real-time booking in the app</p>`
       :m.reserve==='call'
       ?`<button class="primary" data-act="toast" data-msg="Calls ${esc(near.name)} to book">Call to book</button><p>Mention your ENTERTAINER offer when booking, then show it again at check-in to redeem</p>`
-      :`<button class="secondary" data-act="toast" data-msg="Opens directions to ${esc(near.name)}">Get directions</button><p>Show this offer when you pay — staff enter a 4-digit PIN to apply it</p>`}</div>`);
+      :`<button class="secondary" data-act="toast" data-msg="Opens directions to ${esc(near.name)}">Get directions</button><p>Show this offer when you pay. Staff enter a 4-digit PIN to apply it</p>`}</div>`);
   const el=$('#countup'); const target=m.save; const t0=performance.now(); const dur=700;
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   (function step(t){ const k=reduce?1:Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-k,3); el.textContent=Math.round(target*e).toLocaleString('en-US'); if(k<1) requestAnimationFrame(step); })(t0);
