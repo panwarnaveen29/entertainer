@@ -226,7 +226,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .card.compact .coffer{font-size:13.5px;margin-top:7px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .coffer b{font-weight:650}
 .csave{display:block;margin-top:4px;font-size:12px;color:var(--muted);font-weight:500}
-.coffer .csave{display:inline;margin-top:0;margin-left:6px;white-space:nowrap}
+.coffer .csave,.offerrow .csave{display:inline;flex:none;margin-top:0;margin-left:6px;font-size:12px;white-space:nowrap}
 .cmeta .rt{color:var(--ink);font-weight:700}
 .cloc{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:11.5px;color:var(--muted)}
 .cloc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -856,7 +856,7 @@ function card(x,i,p,opts={}){
         ${logo(m,'avatar')}
         <div class="cheadtxt">
           <div class="nm">${hl(m.name,fold(p.text))}</div>
-          <div class="cmeta">${esc(m.tags[0])}${flag}</div>
+          <div class="cmeta">${esc(m.tags[0])}${flag||' · '+esc(m.price)}</div>
         </div>
       </div>
       <div class="cstats">
@@ -865,8 +865,7 @@ function card(x,i,p,opts={}){
         <div class="cstat"><b>${others.length}</b><small>Location${others.length>1?'s':''}</small></div>
       </div>
       <div class="info">
-        <div class="offerrow"><span class="obadge">${esc(m.offers[0][0])}</span><span class="otitle">${esc(m.offers[0][1])}</span></div>
-        <div class="csave">Save ${aed(m.save)}</div>
+        <div class="offerrow"><span class="obadge">${esc(m.offers[0][0])}</span><span class="otitle">${esc(m.offers[0][1])}</span><span class="csave">Save ${aed(m.save)}</span></div>
         <div class="cloc">${ICON.pin}<span>${esc(near.name)}</span><span class="dot">·</span>${fmtKm(near.km)}</div>
       </div>
     </div>
