@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entertainer Search Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: design notes on the left, a 390×844 iPhone running the live search prototype on the right. Tokens match the app screenshots. */
+:root{
+  --blue:#2148D6; --blue-ink:#1A3AB0; --blue-soft:#EBF0FF; --blue-line:#C9D5FB;
+  --ink:#121318; --ink-2:#3B404C; --muted:#6D7282; --faint:#A0A5B1;
+  --line:#E4E6EB; --chip:#F3F4F6; --bg:#F8F8FA; --card:#FFFFFF;
+  --orange:#EF9A2B; --green:#0F7A55; --green-soft:#E4F4EC; --star:#F2B01E;
+  --sea:#CFE0F6; --land:#F1EFEA; --road:#FFFFFF;
+  --page:#E8EBF1; --page-ink:#1A1D26;
+  --font:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+  --spring:cubic-bezier(.32,1.28,.5,1);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);color:var(--page-ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+mark{background:none;color:var(--ink);font-weight:700}
+
+/* ---------- page stage ---------- */
+.stage{display:flex;gap:64px;justify-content:center;align-items:flex-start;padding:40px 24px 64px}
+.notes{width:360px;padding-top:24px;display:flex;flex-direction:column;gap:22px}
+.notes .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);font-weight:700}
+.notes h1{font-size:32px;line-height:1.1;margin:6px 0 0;letter-spacing:-.02em;text-wrap:balance}
+.notes p{margin:0;font-size:14.5px;line-height:1.55;color:#4A4F5C}
+.notes h2{font-size:13px;margin:0 0 10px;letter-spacing:.06em;text-transform:uppercase;color:#7A7F8C}
+.notes ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;counter-reset:n}
+.notes li{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:14px;line-height:1.5;color:#4A4F5C}
+.notes li b{color:var(--page-ink)}
+.notes li::before{counter-increment:n;content:counter(n);width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--line);font-size:11px;font-weight:700;display:grid;place-items:center;color:var(--blue)}
+.try{display:flex;flex-wrap:wrap;gap:8px}
+.try button{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:500;transition:transform .15s,border-color .15s}
+.try button:hover{border-color:var(--blue);color:var(--blue)}
+.try button:active{transform:scale(.96)}
+.try button small{color:var(--muted);font-weight:400}
+.assume{font-size:12.5px!important;color:#7A7F8C!important}
+
+/* ---------- phone ---------- */
+.phone{width:390px;height:844px;border-radius:56px;padding:11px;background:#0D0E11;box-shadow:0 40px 80px -20px rgba(20,30,60,.35),0 0 0 2px #2A2C31 inset;flex:none;position:relative}
+.island{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:120px;height:34px;border-radius:20px;background:#000;z-index:50}
+.screen{position:relative;width:100%;height:100%;border-radius:46px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;color:var(--ink);font-size:14px}
+.status{height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px 36px;font-weight:600;font-size:15px}
+.status .icons{display:flex;gap:6px;align-items:center}
+.batt{font-size:11px;font-weight:700;background:var(--ink);color:#fff;border-radius:5px;padding:1px 5px}
+
+/* ---------- header ---------- */
+.hdr{flex:none;padding:8px 16px 0;background:var(--bg);position:relative;z-index:5;transition:box-shadow .2s}
+.hdr.shadow{box-shadow:0 6px 14px -10px rgba(20,30,60,.25)}
+.bar{display:flex;align-items:center;gap:0}
+.icon-btn{width:40px;height:44px;display:grid;place-items:center;flex:none;border-radius:12px;transition:max-width .3s var(--ease),opacity .2s,margin .3s var(--ease),transform .15s;max-width:40px;overflow:hidden}
+.icon-btn:active{transform:scale(.9)}
+.back{max-width:0;opacity:0;margin-right:0}
+.screen[data-mode="results"] .back{max-width:40px;opacity:1;margin-right:4px;margin-left:-8px}
+.field{flex:1;min-width:0;height:46px;display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--card);border:1px solid var(--line);border-radius:14px;position:relative;transition:border-color .2s,box-shadow .2s}
+.field:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px var(--blue-soft)}
+.field svg{flex:none;color:var(--faint)}
+.field input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:16px;color:var(--ink);height:100%;padding:0}
+.field input::-webkit-search-cancel-button{display:none}
+.ph{position:absolute;left:42px;right:40px;top:0;bottom:0;display:flex;align-items:center;pointer-events:none;color:var(--faint);font-size:16px;white-space:nowrap;overflow:hidden;transition:opacity .15s}
+.field.has-value .ph{opacity:0}
+.ph-rot{display:inline-block;margin-left:4px;color:var(--muted)}
+.ph-rot.out{animation:phOut .28s var(--ease) forwards}
+.ph-rot.in{animation:phIn .34s var(--ease)}
+@keyframes phOut{to{transform:translateY(-14px);opacity:0}}
+@keyframes phIn{from{transform:translateY(14px);opacity:0}}
+.clear{width:22px;height:22px;border-radius:50%;background:#C8CBD3;color:#fff;display:grid;place-items:center;flex:none;transform:scale(0);transition:transform .2s var(--spring)}
+.field.has-value .clear{transform:scale(1)}
+.mapbtn{margin-left:8px}
+.screen[data-mode="typing"] .mapbtn{max-width:0;opacity:0;margin-left:0}
+.cancel{max-width:0;opacity:0;overflow:hidden;white-space:nowrap;color:var(--blue);font-weight:600;font-size:15px;transition:max-width .3s var(--ease),opacity .2s,margin .3s var(--ease)}
+.screen[data-mode="typing"] .cancel{max-width:70px;opacity:1;margin-left:12px}
+
+.res-only{display:none}
+.screen[data-mode="results"] .res-only{display:flex}
+.tokens{gap:6px;padding:10px 0 2px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;align-items:center}
+.tokens::-webkit-scrollbar,.filters::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
+.tok-label{font-size:12px;color:var(--muted);flex:none;margin-right:2px}
+.token{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:999px;background:var(--ink);color:#fff;font-size:12.5px;font-weight:600;animation:tokIn .35s var(--spring) both;animation-delay:calc(var(--i,0)*60ms)}
+.livechips{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 16px}
+.livechips .token{padding:0 12px;animation-delay:calc(var(--i,0)*70ms)}
+.token .x{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
+.token .ti{opacity:.7;font-weight:500}
+@keyframes tokIn{from{transform:scale(.6);opacity:0}}
+.filters{gap:8px;padding:10px 16px 10px;margin:0 -16px;overflow-x:auto;scrollbar-width:none}
+.fchip{flex:none;height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;font-weight:500;color:var(--ink-2);transition:background .2s,border-color .2s,color .2s,transform .12s}
+.fchip:active{transform:scale(.95)}
+.fchip.on{background:var(--blue-soft);border-color:var(--blue-line);color:var(--blue-ink)}
+.fchip .chk{display:none}
+.fchip.on .chk{display:block;animation:pop .35s var(--spring)}
+.fchip .dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.tabs{position:relative;gap:22px;border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.tab{flex:none;height:40px;font-size:14px;font-weight:600;color:var(--muted);display:inline-flex;align-items:center;gap:6px;transition:color .2s}
+.tab.on{color:var(--ink)}
+.tab .n{font-size:11px;font-weight:600;background:var(--chip);color:var(--muted);border-radius:999px;padding:1px 7px;min-width:22px;text-align:center;font-variant-numeric:tabular-nums;transition:background .2s,color .2s}
+.tab.on .n{background:var(--ink);color:#fff}
+.tab.zero{color:var(--faint)}
+.tab-ind{position:absolute;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--ink);transition:left .35s var(--spring),width .35s var(--spring)}
+
+/* ---------- content ---------- */
+.content{flex:1;min-height:0;overflow-y:auto;position:relative;scrollbar-width:none}
+.content::-webkit-scrollbar{display:none}
+.view{padding:6px 16px 130px}
+.view.enter{animation:viewIn .3s var(--ease)}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}}
+.anim{animation:up .38s var(--ease) both;animation-delay:calc(var(--i,0)*40ms)}
+@keyframes up{from{opacity:0;transform:translateY(10px)}}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+.sec{margin-top:18px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.sec-h h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.link{color:var(--blue);font-size:13.5px;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips.row{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
+.chips.row::-webkit-scrollbar{display:none}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;color:var(--ink-2);transition:transform .12s,border-color .2s,max-width .3s,opacity .25s,padding .3s,margin .3s}
+.chip:active{transform:scale(.95)}
+.chip svg{flex:none}
+.chip.gone{animation:chipOut .28s var(--ease) forwards;animation-delay:calc(var(--i,0)*45ms)}
+@keyframes chipOut{to{transform:scale(.7);opacity:0}}
+.collapse{display:grid;grid-template-rows:1fr;transition:grid-template-rows .35s var(--ease),opacity .25s}
+.collapse>div{overflow:hidden}
+.collapse.shut{grid-template-rows:0fr;opacity:0}
+
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:12px;text-align:left;min-width:0;transition:transform .15s,border-color .2s}
+.cat:active{transform:scale(.96)}
+.cat .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none}
+.cat .ct{display:flex;flex-direction:column;gap:2px;min-width:0;width:100%}
+.cat b{font-size:14px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat small{font-size:11.5px;line-height:1.3;color:var(--muted)}
+
+/* suggestions */
+.sg-group{margin-top:14px}
+.sg-label{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:0 0 4px}
+.sg{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 0;border-radius:12px;transition:background .15s}
+.sg:active{background:var(--chip)}
+.sg .ic{width:42px;height:42px;border-radius:12px;background:var(--chip);display:grid;place-items:center;flex:none;color:var(--ink-2)}
+.sg .t{flex:1;min-width:0}
+.sg .t div{font-size:15px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg .t small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg .tail{font-size:12px;font-weight:600;color:var(--blue-ink);background:var(--blue-soft);padding:4px 8px;border-radius:8px;flex:none;font-variant-numeric:tabular-nums}
+.sg .arrow{color:var(--faint);flex:none}
+.sg.hero{background:var(--blue-soft);border:1px solid var(--blue-line);padding:10px 12px;margin-top:10px}
+.sg.hero .ic{background:var(--blue);color:#fff}
+.sg.hero .t div{color:var(--ink);font-weight:600}
+.see-all{display:flex;align-items:center;gap:10px;margin-top:14px;padding:13px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);width:100%;font-weight:600;color:var(--blue);font-size:14px}
+.dym{margin-top:14px;padding:14px;border-radius:14px;background:var(--card);border:1px dashed var(--line);font-size:14px;color:var(--ink-2)}
+.dym button{color:var(--blue);font-weight:700;text-decoration:underline}
+
+/* results */
+.meta{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin:4px 0 10px}
+.meta b{color:var(--ink);font-variant-numeric:tabular-nums;display:inline-block}
+.scopenote{color:var(--muted);text-decoration:underline;text-underline-offset:2px;font-size:inherit}
+.bump{animation:pop .4s var(--spring)}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border-radius:12px;background:var(--blue-soft);color:var(--blue-ink);font-size:13px;line-height:1.4;margin-bottom:10px}
+.banner svg{flex:none;margin-top:1px}
+.banner button{font-weight:700;text-decoration:underline}
+.list{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card);border-radius:20px;box-shadow:0 1px 2px rgba(20,30,60,.05),0 4px 14px -8px rgba(20,30,60,.12);position:relative;overflow:hidden;transition:transform .15s}
+.card-main{display:block;cursor:pointer;text-align:left;width:100%}
+.card-main:active .info{background:#FBFBFC}
+.card:has(.card-main:active){transform:scale(.985)}
+.cbanner{position:relative;height:132px;background-color:var(--chip);background-size:cover;background-position:center;overflow:hidden}
+.b-rate{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.95);color:var(--ink);font-size:12px;font-weight:700;padding:4px 8px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.logo{width:68px;height:68px;border-radius:14px;flex:none;display:grid;place-items:center;text-align:center;line-height:1;overflow:hidden;border:1px solid var(--line);font-weight:800;letter-spacing:.02em}
+.logo.sm{width:44px;height:44px;border-radius:10px}
+.info{min-width:0;padding:13px 16px 12px;transition:background .15s}
+.nm{font-size:16.5px;font-weight:750;line-height:1.3;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.nm mark{color:var(--blue-ink);background:linear-gradient(transparent 62%,var(--blue-soft) 62%)}
+.cmeta{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmeta b{color:var(--ink-2);font-weight:600}
+.cmeta .dot{opacity:.55;margin:0 1px}
+.cmeta .f-call{color:#8A5A0B}
+.cmeta .f-live{color:var(--green)}
+.coffer{margin-top:7px;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coffer b{font-weight:650}
+.coffer .csave{color:var(--muted);font-weight:500;margin-left:6px}
+.heart{position:absolute;top:10px;right:10px;width:32px;height:32px;display:grid;place-items:center;color:#fff;background:rgba(10,14,25,.3);border-radius:50%;z-index:2;backdrop-filter:blur(3px)}
+.heart.on{color:#E5384F;background:#fff}
+.heart.on svg{animation:pop .45s var(--spring)}
+.heart.on::after{content:"";position:absolute;inset:6px;border-radius:50%;border:2px solid #E5384F;animation:ring .5s ease-out forwards}
+@keyframes ring{from{transform:scale(.5);opacity:1}to{transform:scale(1.6);opacity:0}}
+.heart svg path{fill:none;stroke:currentColor}
+.heart.on svg path{fill:currentColor}
+.cmore{display:flex;align-items:center;gap:6px;width:100%;padding:11px 16px 13px;font-size:12.5px;font-weight:600;color:var(--blue)}
+.cmore svg{transition:transform .3s var(--ease)}
+.cmore.open svg{transform:rotate(180deg)}
+.outlets{padding:0 16px}
+.outlet{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px dashed var(--line);font-size:13px;width:100%;text-align:left}
+.outlet:first-child{border-top:0}
+.outlet .o-n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.outlet .o-k{color:var(--muted);font-variant-numeric:tabular-nums}
+.outlet .o-tag{font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:1px 6px;border-radius:999px}
+.outlet.dim .o-n{color:var(--muted)}
+.outside-btn{display:flex;align-items:center;gap:10px;width:100%;margin:18px 0 10px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.outside-btn::before,.outside-btn::after{content:"";flex:1;height:1px;background:var(--line)}
+.outside-btn span{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+.outside-btn svg{transition:transform .3s var(--ease)}
+.outside-btn.open svg{transform:rotate(180deg)}
+.empty{text-align:center;padding:36px 12px}
+.empty .big{width:84px;height:84px;margin:0 auto 14px;border-radius:50%;background:var(--card);display:grid;place-items:center;box-shadow:0 6px 18px -10px rgba(20,30,60,.3);animation:wobble 2.4s ease-in-out infinite}
+@keyframes wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.empty h4{margin:0 0 6px;font-size:17px}
+.empty p{margin:0 0 16px;color:var(--muted);font-size:13.5px;line-height:1.5}
+.empty .chips{justify-content:center}
+.primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 18px;border-radius:14px;background:var(--blue);color:#fff;font-weight:700;font-size:15px;transition:transform .12s,background .2s}
+.primary:active{transform:scale(.97)}
+.secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 18px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--ink);font-weight:600;font-size:15px}
+
+/* skeleton */
+.sk{background:var(--card);border-radius:18px;padding:12px;display:flex;gap:12px}
+.sk i{display:block;border-radius:8px;background:linear-gradient(90deg,#EEF0F3 0%,#F7F8FA 40%,#EEF0F3 80%);background-size:200% 100%;animation:shim 1s linear infinite}
+@keyframes shim{from{background-position:150% 0}to{background-position:-50% 0}}
+
+/* map */
+.mapwrap{position:absolute;inset:0;overflow:hidden;animation:fadeIn .35s var(--ease)}
+@keyframes fadeIn{from{opacity:0}}
+.map-svg{width:100%;height:100%;display:block}
+.pin-in{animation:drop .5s var(--spring) both}
+@keyframes drop{from{transform:translateY(-22px);opacity:0}}
+.pin{cursor:pointer}
+.pin rect,.pin path{transition:fill .2s}
+.pin text{transition:fill .2s}
+.pin.on rect,.pin.on path{fill:var(--ink)}
+.pin.on text{fill:#fff}
+.pin-sc{transition:transform .3s var(--spring);transform-box:fill-box;transform-origin:50% 100%}
+.pin.on .pin-sc{transform:scale(1.18)}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{from{transform:scale(1);opacity:.45}to{transform:scale(3.4);opacity:0}}
+.offmap{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--card);border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:600;box-shadow:0 6px 16px -8px rgba(20,30,60,.35);white-space:nowrap;display:flex;gap:6px;align-items:center}
+.carousel{position:absolute;left:0;right:0;bottom:104px;display:flex;gap:10px;overflow-x:auto;padding:0 16px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.carousel::-webkit-scrollbar{display:none}
+.carousel .card{flex:none;width:290px;scroll-snap-align:center;animation:up .4s var(--ease) both;animation-delay:.15s}
+.card.compact .cbanner{height:92px}
+
+/* tab bar */
+.tabbar{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:252px;height:64px;border-radius:999px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px -10px rgba(20,30,60,.3),0 0 0 1px rgba(20,30,60,.05);display:flex;align-items:center;justify-content:space-around;padding:0 6px;z-index:20;transition:transform .35s var(--ease),opacity .25s}
+.screen[data-mode="typing"] .tabbar{transform:translate(-50%,120px);opacity:0}
+.tb{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:500;width:76px;height:52px;justify-content:center;border-radius:999px;color:var(--ink-2)}
+.tb.on{background:#ECEDF1;color:var(--blue)}
+.tb.on span{color:var(--blue)}
+.homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:var(--ink);z-index:21}
+
+/* sheet */
+.scrim{position:absolute;inset:0;background:rgba(10,14,25,.38);opacity:0;pointer-events:none;transition:opacity .3s;z-index:30}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;background:var(--card);border-radius:28px 28px 0 0;z-index:31;transform:translateY(105%);transition:transform .45s var(--spring);display:flex;flex-direction:column}
+.sheet.on{transform:translateY(0)}
+.sheet.drag{transition:none}
+.grab{padding:10px 0 4px;display:grid;place-items:center;cursor:grab;touch-action:none;flex:none}
+.grab i{width:40px;height:5px;border-radius:3px;background:#D5D8DE}
+.sheet-body{overflow-y:auto;padding:6px 20px 34px;scrollbar-width:none}
+.sheet-body::-webkit-scrollbar{display:none}
+.sh-head{display:flex;gap:14px;align-items:center}
+.sh-head .logo{width:64px;height:64px}
+.sh-head h2{margin:0;font-size:21px;letter-spacing:-.01em}
+.sh-head p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.savebig{margin:16px 0 4px;padding:14px;border-radius:16px;background:linear-gradient(135deg,#2148D6,#3B6BF0);color:#fff;display:flex;align-items:center;justify-content:space-between}
+.savebig small{display:block;font-size:12px;opacity:.8}
+.savebig b{font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.savebig .tag{font-size:12px;background:rgba(255,255,255,.18);padding:5px 10px;border-radius:999px;font-weight:600}
+.sh-sec{margin-top:18px}
+.sh-sec h4{margin:0 0 8px;font-size:15px}
+.offer-row{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.offer-row .badge{width:58px;height:50px;border-radius:10px;background:var(--blue-soft);color:var(--blue-ink);font-size:12px;font-weight:800;display:grid;place-items:center;text-align:center;line-height:1.1;text-transform:uppercase;flex:none;padding:0 4px}
+.offer-row .t{flex:1;min-width:0}
+.offer-row .t b{display:block;font-size:14px}
+.offer-row .t small{color:var(--muted);font-size:12px}
+.offer-row .up{font-size:12px;font-weight:700;color:var(--ink-2);flex:none}
+.loc-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:13.5px}
+.loc-row:first-of-type{border-top:0}
+.loc-row .t{flex:1;min-width:0}
+.loc-row .t small{display:block;color:var(--muted);font-size:12px}
+.loc-row .k{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12.5px}
+.loc-row.hit .t>span{font-weight:700}
+.loc-row .dir{font-size:12.5px;font-weight:600;color:var(--blue);padding:6px 10px;border-radius:999px;background:var(--blue-soft)}
+.sh-foot{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.sh-foot .primary,.sh-foot .secondary{width:100%}
+.sh-foot p{margin:0;text-align:center;font-size:12px;color:var(--muted)}
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:14px 4px;border-top:1px solid var(--line);text-align:left;font-size:15px}
+.opt:first-of-type{border-top:0}
+.opt small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.opt .t{flex:1}
+.opt .cnt{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.radio{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;flex:none;transition:border-color .2s}
+.opt.on .radio{border-color:var(--blue)}
+.opt.on .radio::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--blue);animation:pop .3s var(--spring)}
+.sheet-title{font-size:18px;font-weight:700;margin:4px 0 8px}
+.sheet-foot-fixed{flex:none;display:flex;align-items:center;gap:16px;padding:12px 20px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--card)}
+.sheet-foot-fixed .link{font-size:13.5px;font-weight:600;color:var(--ink-2);text-decoration:underline;flex:none}
+.sheet-foot-fixed .primary{flex:1}
+.fs-head{display:flex;align-items:center;justify-content:space-between;padding:4px 0 10px}
+.fs-head .sheet-title{margin:0}
+.fs-x{width:30px;height:30px;border-radius:50%;background:var(--chip);display:grid;place-items:center;color:var(--ink-2)}
+.fs-body{display:flex;height:min(56vh,440px);margin:0 -20px}
+.fs-rail{flex:none;width:106px;overflow-y:auto;border-right:1px solid var(--line);padding:4px 0;scrollbar-width:none}
+.fs-rail::-webkit-scrollbar{display:none}
+.fs-tab{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;padding:13px 4px;font-size:11.5px;font-weight:600;color:var(--ink-2);text-align:center;line-height:1.25;position:relative}
+.fs-tab svg{opacity:.75}
+.fs-tab.on{background:var(--blue-soft);color:var(--blue-ink)}
+.fs-tab.on svg{opacity:1}
+.fs-tab .fs-dot{position:absolute;top:9px;right:16px;width:7px;height:7px;border-radius:50%;background:var(--blue)}
+.fs-panel{flex:1;min-width:0;overflow-y:auto;padding:4px 20px;scrollbar-width:none}
+.fs-panel::-webkit-scrollbar{display:none}
+.fs-panel h4{margin:12px 0 10px;font-size:14.5px}
+.fs-panel h4:first-child{margin-top:2px}
+.fchoice{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--ink-2);margin:0 8px 8px 0}
+.fchoice.on{background:var(--blue-soft);border-color:var(--blue-line);color:var(--blue-ink);font-weight:600}
+
+/* toast */
+.toast{position:absolute;left:16px;right:16px;top:64px;z-index:40;background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.4;display:flex;gap:10px;align-items:center;transform:translateY(-140%);opacity:0;transition:transform .45s var(--spring),opacity .25s;pointer-events:none;box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
+.toast.on{transform:none;opacity:1}
+
+@media (max-width:900px){
+  .stage{flex-direction:column-reverse;align-items:center;gap:32px}
+  .notes{width:100%;max-width:420px;padding-top:0}
+}
+@media (max-width:500px){
+  .stage{padding:0 0 40px}
+  .phone{width:100vw;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}
+  .island,.status,.homebar{display:none}
+  .screen{border-radius:0;padding-top:env(safe-area-inset-top,0px)}
+  .notes{padding:0 16px}
+  .toast{top:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="notes">
+    <div>
+      <div class="eyebrow">ENTERTAINER · Search redesign</div>
+      <h1>Find the exact offer you came for</h1>
+    </div>
+    <p>The app already understands "pizza near me." What it doesn't do well is rank by it — in testing, that search surfaced a spa before the pizza places. This fixes relevance, not just parsing, alongside the merchant-per-outlet repeats and the scope that's never shown.</p>
+    <div>
+      <h2>What changed</h2>
+      <ol>
+        <li><span><b>It understands, then ranks.</b> "Pizza near me" becomes cuisine + place — weak matches drop out, so a spa can't outrank the pizza places.</span></li>
+        <li><span><b>One card per merchant.</b> Offers belong to the merchant — outlets fold underneath.</span></li>
+        <li><span><b>Scope widens itself.</b> Naming a far place expands the search instead of returning nothing.</span></li>
+        <li><span><b>Redeem, not book.</b> A 4-digit PIN in person — hotels need a call ahead first.</span></li>
+      </ol>
+    </div>
+    <div>
+      <h2>Try</h2>
+      <div class="try">
+        <button data-act="demo" data-q="pizza near me">pizza near me <small>· relevance</small></button>
+        <button data-act="demo" data-q="hurricans gril">hurricans gril <small>· typo</small></button>
+        <button data-act="demo" data-q="staycation">staycation</button>
+        <button data-act="demo" data-q="maldives">maldives <small>· global</small></button>
+      </div>
+    </div>
+    <p class="assume">Grounded in the real ENTERTAINER app (Dining/Hotels/Attractions, Buy 1 Get 1 Free redeemed via PIN). Catalog, distances and prices are sample data.</p>
+  </aside>
+
+  <div class="phone">
+    <div class="island"></div>
+    <div class="screen" id="screen" data-mode="idle">
+      <div class="status"><span>1:06</span><span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5 5.6 9a3.4 3.4 0 0 1 4.8 0zM3.5 7a6.4 6.4 0 0 1 9 0l-1.4 1.4a4.4 4.4 0 0 0-6.2 0zM1.3 4.8a9.5 9.5 0 0 1 13.4 0L13.3 6.2a7.5 7.5 0 0 0-10.6 0z" fill="currentColor"/></svg>
+        <span class="batt">71</span></span></div>
+
+      <header class="hdr" id="hdr">
+        <div class="bar">
+          <button class="icon-btn back" data-act="back" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <label class="field" id="field">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <input id="q" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Search offers, places and venues">
+            <span class="ph" aria-hidden="true">Try <span class="ph-rot" id="phRot">“sushi in marina”</span></span>
+            <button class="clear" type="button" data-act="clear" aria-label="Clear search"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"/></svg></button>
+          </label>
+          <button class="icon-btn mapbtn" id="mapBtn" data-act="view" aria-label="Map view"></button>
+          <button class="cancel" data-act="cancel">Cancel</button>
+        </div>
+        <div class="tokens res-only" id="tokens"></div>
+        <div class="filters res-only" id="filters"></div>
+        <div class="tabs res-only" id="tabs"></div>
+      </header>
+
+      <main class="content" id="content"></main>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <nav class="tabbar">
+        <button class="tb" data-act="nav"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"/></svg><span>Home</span></button>
+        <button class="tb on" data-act="focus"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>Search</span></button>
+        <button class="tb" data-act="nav"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18.5c1.5-2 3.4-3 5.5-3s4 1 5.5 3"/></svg><span>Account</span></button>
+      </nav>
+      <div class="homebar"></div>
+
+      <div class="scrim" id="scrim" data-act="closesheet"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true">
+        <div class="grab" id="grab"><i></i></div>
+        <div class="sheet-body" id="sheetBody"></div>
+        <div class="sheet-foot-fixed" id="sheetFootFixed" hidden></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const AREA = {
+  dubaimall:{name:'The Dubai Mall',city:'Dubai',km:1.2,x:248,y:318},
+  skyplaza:{name:'Burj Plaza, Downtown',city:'Dubai',km:0.6,x:266,y:300},
+  businessbay:{name:'Business Bay',city:'Dubai',km:3.4,x:228,y:342},
+  difc:{name:'Gate Avenue, DIFC',city:'Dubai',km:2.8,x:282,y:282},
+  citywalk:{name:'City Walk',city:'Dubai',km:4.2,x:224,y:276},
+  jumeirah:{name:'Jumeirah Beach Road',city:'Dubai',km:7.5,x:186,y:252},
+  wafi:{name:'Wafi City',city:'Dubai',km:6.4,x:306,y:316},
+  festival:{name:'Dubai Festival City',city:'Dubai',km:9.8,x:328,y:356},
+  hills:{name:'Dubai Hills Mall',city:'Dubai',km:13.5,x:152,y:392},
+  moe:{name:'Mall of the Emirates',city:'Dubai',km:16.2,x:124,y:334},
+  palm:{name:'Palm Jumeirah',city:'Dubai',km:19.6,x:98,y:232},
+  marinamall:{name:'Dubai Marina Mall',city:'Dubai',km:23.9,x:70,y:338},
+  marina:{name:'Dubai Marina Walk',city:'Dubai',km:24.3,x:56,y:322},
+  jbr:{name:'The Walk, JBR',city:'Dubai',km:25.1,x:38,y:304},
+  desert:{name:'Al Marmoom Desert (hotel pickup)',city:'Dubai',km:38},
+  rak:{name:'Al Marjan Island, Ras Al Khaimah',city:'Ras Al Khaimah',km:96},
+  fujairah:{name:'Century Mall, Fujairah',city:'Fujairah',km:118},
+  yas:{name:'Yas Mall, Abu Dhabi',city:'Abu Dhabi',km:128},
+  yasbay:{name:'Yas Bay, Abu Dhabi',city:'Abu Dhabi',km:131},
+  corniche:{name:'Corniche, Abu Dhabi',city:'Abu Dhabi',km:142},
+  maldives:{name:'North Malé Atoll, Maldives',city:'Maldives',km:3080}
+};
+const LOCS = [
+  {key:'downtown',label:'Downtown Dubai',aliases:['downtown','downtown dubai'],areas:['dubaimall','skyplaza','businessbay','difc']},
+  {key:'dubaimall',label:'The Dubai Mall',aliases:['dubai mall','the dubai mall'],areas:['dubaimall']},
+  {key:'marina',label:'Dubai Marina',aliases:['marina','dubai marina'],areas:['marina','marinamall','jbr']},
+  {key:'jbr',label:'JBR',aliases:['jbr','the walk'],areas:['jbr']},
+  {key:'palm',label:'Palm Jumeirah',aliases:['palm','the palm','palm jumeirah'],areas:['palm']},
+  {key:'moe',label:'Mall of the Emirates',aliases:['mall of the emirates','moe'],areas:['moe']},
+  {key:'hills',label:'Dubai Hills',aliases:['dubai hills','dubai hills mall'],areas:['hills']},
+  {key:'citywalk',label:'City Walk',aliases:['city walk','citywalk'],areas:['citywalk']},
+  {key:'jumeirah',label:'Jumeirah',aliases:['jumeirah'],areas:['jumeirah','citywalk']},
+  {key:'festival',label:'Festival City',aliases:['festival city'],areas:['festival']},
+  {key:'dubai',label:'Dubai',aliases:['dubai'],city:'Dubai'},
+  {key:'abudhabi',label:'Abu Dhabi',aliases:['abu dhabi','yas'],city:'Abu Dhabi'},
+  {key:'rak',label:'Ras Al Khaimah',aliases:['ras al khaimah','rak'],city:'Ras Al Khaimah'},
+  {key:'fujairah',label:'Fujairah',aliases:['fujairah'],city:'Fujairah'},
+  {key:'maldives',label:'Maldives',aliases:['maldives'],city:'Maldives'}
+];
+const CAT = {dining:'Dining',hotels:'Hotels',attractions:'Attractions'};
+const CATWORDS = {dining:'dining',restaurant:'dining',restaurants:'dining',food:'dining',eat:'dining',hotel:'hotels',hotels:'hotels',stay:'hotels',stays:'hotels',staycation:'hotels',resort:'hotels',resorts:'hotels',attraction:'attractions',attractions:'attractions',activities:'attractions',activity:'attractions',things:'attractions'};
+const TAGWORDS = new Set(['staycation']);
+const STOP = new Set(['in','near','me','my','at','for','the','with','to','do','and','around','a','of']);
+const SYN = {steak:'steakhouse',steaks:'steakhouse',coffee:'cafe',waterpark:'waterpark',kid:'kids',children:'kids',family:'family',seafood:'seafood',fish:'seafood'};
+
+// [id, name, cat, tags, rating, priceLabel, savings, offers[[badge,title,terms]], outlets, logo[bg,fg,html,font,size], reserve('call'|'instant'|null), monthlyRedemptions]
+const M = [
+ ['fogo','Fogo de Chão','dining',['Brazilian','Steakhouse','Brunch'],4.6,'AED 320 avg',499,[['Buy 1 Get 1','Churrasco dinner','Full rodízio · Sun–Thu'],['25% off','Saturday brunch','Up to 4 guests']],['dubaimall','yas'],['#fff','#111','FOGO<br>DE<br>CHÃO','Georgia,serif',15],null],
+ ['hurricane',"Hurricane's Grill",'dining',['Australian','Grill','Casual'],4.4,'AED 180 avg',100,[['Buy 1 Get 1','Main courses','Ribs, burgers and grills'],['Buy 1 Get 1','Lunch set','Weekdays 12–4pm']],['dubaimall','marina','yasbay'],['#141414','#F2A23A','<span style="border:3px solid #E5682B;border-radius:50%;width:46px;height:46px;display:grid;place-items:center">HG</span>','Inter,sans-serif',15],null],
+ ['threecuts','Three Cuts','dining',['Steakhouse','Fine dining'],4.7,'AED 400 avg',350,[['Buy 1 Get 1','Steaks','Any cut from the grill'],['20% off','Total bill','Excludes beverages']],['businessbay'],['#1E3A31','#E9E4D6','THR3E<br>CUTS','Georgia,serif',12],'instant'],
+ ['anise','Anise','dining',['International','Buffet','Brunch'],4.5,'AED 290 avg',600,[['Buy 1 Get 1','Friday brunch','Soft drinks package'],['Buy 1 Get 1','Dinner buffet','Every night']],['festival'],['#fff','#E07B2C','<i>anise</i>','Georgia,serif',19],null],
+ ['sushiart','Sushi Art','dining',['Japanese','Sushi','Casual'],4.3,'AED 140 avg',150,[['Buy 1 Get 1','Sushi platters','Dine-in and pickup'],['25% off','Lunch boxes','Weekdays']],['citywalk','marinamall','hills','corniche'],['#C8102E','#fff','SUSHI<br>ART','Inter,sans-serif',14],null],
+ ['tomo','Tomo','dining',['Japanese','Sushi','Rooftop'],4.6,'AED 260 avg',300,[['Buy 1 Get 1','Main courses','Dinner only'],['25% off','Omakase','Walk-in, subject to availability']],['wafi'],['#F4EFE6','#2A2A2A','友<br><span style="font-size:11px;letter-spacing:.2em">TOMO</span>','Georgia,serif',22],null],
+ ['kaze','Kaze Sushi Bar','dining',['Japanese','Sushi','Waterfront'],4.5,'AED 210 avg',280,[['Buy 1 Get 1','Sushi & maki','Dinner, Sun–Thu'],['25% off','Sake pairing','With any set menu']],['marina','jbr'],['#111','#F4F1EA','風<br><span style="font-size:9px;letter-spacing:.2em">KAZE</span>','Georgia,serif',22],null],
+ ['brick','Brick & Basil','dining',['Italian','Pizza','Family'],4.2,'AED 120 avg',120,[['Buy 1 Get 1','Pizzas','Any wood-fired pizza'],['Kids free','Kids eat free','With every adult main']],['jbr','hills','difc'],['#2F6B3B','#FFF4DC','B&amp;B<br><span style="font-size:9px;letter-spacing:.15em">PIZZERIA</span>','Georgia,serif',18],null],
+ ['saffron','Saffron Lane Café','dining',['Cafe','Breakfast','Emirati'],4.4,'AED 75 avg',80,[['Bonus offer','Coffee','Reusable up to 4x a day'],['Buy 1 Get 1','Breakfast','Until 11:30am']],['jumeirah','citywalk'],['#F6C343','#4A2A0A','saffron<br><span style="font-size:9px">lane</span>','Georgia,serif',15],null],
+ ['marinasocial','Marina Social','dining',['Mediterranean','Brunch','Waterfront'],4.5,'AED 280 avg',420,[['Buy 1 Get 1','Sunday brunch','House beverage package'],['Buy 1 Get 1','Main courses','Dinner']],['marina'],['#0E2A47','#fff','MARINA<br>SOCIAL','Inter,sans-serif',12],null],
+ ['shorehouse','Shore House','dining',['Seafood','Beach','Brunch'],4.3,'AED 220 avg',260,[['Buy 1 Get 1','Seafood platters','Lunch and dinner'],['25% off','Beach brunch','Fridays']],['palm'],['#E6F3F7','#14607A','SHORE<br>HOUSE','Georgia,serif',13],null],
+ ['fishmarket','Corniche Fish Market','dining',['Seafood','Arabic'],4.2,'AED 160 avg',200,[['Buy 1 Get 1','Main courses','Catch of the day']],['corniche'],['#123B5C','#9FD3E8','CFM','Georgia,serif',20],null],
+ ['pizzalab','Pizza Lab','dining',['Pizza','Italian','Casual'],4.1,'AED 90 avg',90,[['Buy 1 Get 1','Pizzas','Dine-in and pickup'],['Buy 1 Get 1','Pasta','Lunch only']],['dubaimall','marinamall','yas'],['#FFDD00','#111','PIZZA<br>LAB','Inter,sans-serif',15],null],
+ ['palmshore','Palm Shore Resort','hotels',['Beach resort','Pool','Staycation','Family'],4.7,'From AED 1,250 / night',1800,[['Buy 1 Get 1','Room nights','Breakfast included, min. 2 nights'],['50% off','Spa treatments','Mon–Thu']],['palm'],['#0B4F6C','#F7E7C6','PALM<br>SHORE','Georgia,serif',13],'call'],
+ ['marinabay','Marina Bay Suites','hotels',['City hotel','Staycation','Pool'],4.3,'From AED 650 / night',650,[['Buy 1 Get 1','Room nights','City view rooms, min. 2 nights']],['marina'],['#232B3A','#C9A86A','MBS','Georgia,serif',20],'call'],
+ ['loft','Downtown Loft Hotel','hotels',['City hotel','Rooftop pool','Staycation'],4.4,'From AED 720 / night',720,[['Buy 1 Get 1','Room nights','Weekends, min. 2 nights'],['Buy 1 Get 1','Pool day pass','Rooftop']],['skyplaza'],['#EDE7E0','#3A2E26','LOFT','Georgia,serif',18],'call'],
+ ['marjan','Marjan Sands Resort','hotels',['Beach resort','Staycation','Family','Pool'],4.5,'From AED 890 / night',1100,[['Buy 1 Get 1','Room nights','Half board, min. 2 nights'],['Buy 1 Get 1','Day pass','Pool and beach']],['rak'],['#F3E3C3','#8B5A1F','MARJAN<br>SANDS','Georgia,serif',12],'call'],
+ ['lagoon','Lagoon Isle Maldives','hotels',['Overwater villa','All-inclusive','Beach resort'],4.9,'From AED 3,900 / night',6500,[['25% off','Villa stays','Min. 3 nights'],['Free','Seaplane upgrade','With 5+ nights']],['maldives'],['#5CC6D0','#fff','LAGOON<br><span style="font-size:9px;letter-spacing:.2em">ISLE</span>','Georgia,serif',13],'instant'],
+ ['funcity','Fun City','attractions',['Kids','Indoor play','Arcade'],4.2,'Play cards from AED 50',250,[['Buy 1 Get 1','Play card top-up','Up to AED 200']],['hills','festival','fujairah'],['#fff','#6A2FB8','<span style="background:linear-gradient(135deg,#F14E8C,#5B3FD8,#21B3E8);-webkit-background-clip:text;background-clip:text;color:transparent">FUN<br>CITY</span>','Inter,sans-serif',16],null],
+ ['skydeck','Sky Deck 148','attractions',['Observation deck','Views'],4.6,'Tickets AED 169',169,[['Buy 1 Get 1','Entry tickets','Sunset slots included']],['skyplaza'],['#0D1B3E','#fff','148','Inter,sans-serif',22],null],
+ ['wave','Wave Kingdom Waterpark','attractions',['Waterpark','Kids','Outdoor','Family'],4.7,'Day pass AED 299',598,[['Buy 1 Get 1','Day passes','Adults and kids']],['palm'],['#1E9BD7','#fff','WAVE<br><span style="font-size:9px;letter-spacing:.15em">KINGDOM</span>','Inter,sans-serif',14],null],
+ ['snow','Snow Peak','attractions',['Snow park','Kids','Indoor'],4.5,'Sessions AED 220',440,[['Buy 1 Get 1','Snow Classic','2-hour session']],['moe'],['#E8F4FF','#1A5BA8','❄<br><span style="font-size:10px;letter-spacing:.12em">SNOW PEAK</span>','Inter,sans-serif',22],null],
+ ['dune','Dune Riders Safari','attractions',['Desert safari','Outdoor','Adventure'],4.6,'From AED 250',500,[['Buy 1 Get 1','Evening safari','BBQ dinner and pickup']],['desert'],['#D98A3A','#fff','DUNE<br>RIDERS','Inter,sans-serif',12],null],
+ ['yasadv','Yas Adventure Park','attractions',['Theme park','Kids','Rides'],4.8,'Day ticket AED 345',690,[['Buy 1 Get 1','Day tickets','Show at entry, PIN redemption']],['yas'],['#C3122F','#FFD400','YAS<br><span style="font-size:9px;letter-spacing:.1em">ADVENTURE</span>','Inter,sans-serif',15],null]
+].map(r=>({id:r[0],name:r[1],cat:r[2],tags:r[3],rating:r[4],price:r[5],save:r[6],offers:r[7],out:r[8],logo:r[9],reserve:r[10]||null}));
+const BYID = Object.fromEntries(M.map(m=>[m.id,m]));
+
+/* ---------------- helpers ---------------- */
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm = s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’']/g,'').replace(/\s+/g,' ').trim();
+const fold = s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const fmtKm = k=>k<1?Math.round(k*1000)+' m':k>=1000?Math.round(k).toLocaleString('en-US')+' km':k.toFixed(1)+' km';
+const aed = n=>'AED '+n.toLocaleString('en-US');
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
+function hl(name,text){
+  if(!text) return esc(name);
+  const f=fold(name); let i=f.indexOf(text);
+  if(i<0){ const w=text.split(' ')[0]; i=f.indexOf(w); if(i<0||w.length<2) return esc(name); text=w; }
+  return esc(name.slice(0,i))+'<mark>'+esc(name.slice(i,i+text.length))+'</mark>'+esc(name.slice(i+text.length));
+}
+const logo=(m,cls='')=>{const[bg,fg,h,f,sz]=m.logo;return `<div class="logo ${cls}" style="background:${bg};color:${fg};font-family:${f};font-size:${cls?Math.round(sz*.55):sz}px" aria-hidden="true">${cls?h.replace(/<br>.*$/,''):h}</div>`};
+// Representative ambience/food photography, keyed by the first matching tag (Unsplash, used under its free hotlink terms).
+const PHOTO={
+  Steakhouse:'https://images.unsplash.com/photo-1614119068601-483274e9dcb7',
+  Grill:'https://images.unsplash.com/photo-1614119068601-483274e9dcb7',
+  Sushi:'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351',
+  Pizza:'https://images.unsplash.com/photo-1651981075280-9a9e01acbff0',
+  Buffet:'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0',
+  Brunch:'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0',
+  Cafe:'https://images.unsplash.com/photo-1655979283362-535e6a167a53',
+  Seafood:'https://images.unsplash.com/photo-1606850780554-b55ea4dd0b70',
+  'Beach resort':'https://images.unsplash.com/photo-1584132869994-873f9363a562',
+  'City hotel':'https://images.unsplash.com/photo-1618773928121-c32242e63f39',
+  'Overwater villa':'https://images.unsplash.com/photo-1697898109604-e06e88b15271',
+  'Indoor play':'https://images.unsplash.com/photo-1640301133815-4bec64fca33f',
+  'Observation deck':'https://images.unsplash.com/photo-1684338660428-25a292e9112d',
+  Waterpark:'https://images.unsplash.com/photo-1701361650313-9b20b1d76820',
+  'Snow park':'https://images.unsplash.com/photo-1526363748850-0d54f36ec496',
+  'Desert safari':'https://images.unsplash.com/photo-1638732984528-f255c9714619',
+  'Theme park':'https://images.unsplash.com/photo-1627035983655-0ceec61bb733'
+};
+const CATPHOTO={dining:PHOTO.Buffet,hotels:PHOTO['City hotel'],attractions:PHOTO['Theme park']};
+const photoUrl=m=>(m.tags.find(t=>PHOTO[t])&&PHOTO[m.tags.find(t=>PHOTO[t])])||CATPHOTO[m.cat];
+const photoBanner=m=>`<div class="cbanner" style="background-image:url('${photoUrl(m)}?w=480&h=300&fit=crop&q=70&auto=format')" aria-hidden="true"></div>`;
+
+const ICON = {
+  pin:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  hist:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>',
+  trend:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF9A2B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  map:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5z"/><path d="M9 4v13M15 6.5v13"/></svg>',
+  list:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg>',
+  coins:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v4c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 10v4c0 1.7 3.1 3 7 3s7-1.3 7-3v-4"/><path d="M5 14v4c0 1.7 3.1 3 7 3s7-1.3 7-3v-4"/></svg>',
+  heart:'<svg width="20" height="20" viewBox="0 0 24 24" stroke-width="2"><path d="M12 20s-7.5-4.6-7.5-10A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7.5 3c0 5.4-7.5 10-7.5 10z"/></svg>',
+  chev:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  arrow:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+  x:'<svg width="8" height="8" viewBox="0 0 10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"/></svg>',
+  check:'<svg class="chk" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
+  star:'<svg width="11" height="11" viewBox="0 0 24 24" fill="var(--star)"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg>',
+  info:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+  plane:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>',
+  globe:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>',
+  dining:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10M17 21V3c-2.2 1.3-3.5 3.8-3.5 7v3H17"/></svg>',
+  hotels:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19V6M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11" r="2"/></svg>',
+  attractions:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z"/><path d="M14 9v10" stroke-dasharray="2 2"/></svg>',
+  tag:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>',
+  sliders:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
+  bolt:'<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 11-14h-7z"/></svg>'
+};
+const CATICON = {dining:['#FFF1E2','#C2620B'],hotels:['#E8F0FF','#2148D6'],attractions:['#F3E9FF','#7A33C9']};
+
+/* ---------------- state ---------------- */
+const SCOPES=['near','dubai','uae','world'];
+const SCOPE={near:'Near me',dubai:'Dubai',uae:'All UAE',world:'Worldwide'};
+const SCOPE_SUB={near:'Within 10 km of you',dubai:'Your city',uae:'Every emirate in your membership',world:'Includes travel deals abroad'};
+const SCOPE_INLINE={near:'near you',dubai:'in Dubai',uae:'in the UAE',world:'worldwide'};
+const SORTS={relevance:'Best match',nearest:'Distance',rating:'Rating',newest:'Newest'};
+const S = {mode:'idle',q:'',scope:'dubai',sort:'relevance',tab:'all',rating:false,filters:new Set(),bookable:false,view:'list',
+  recents:['Pizza','marina','Dubai Mall'],saved:new Set(),showOutside:false,open:new Set(),tagChips:[],pin:0,lastCount:null};
+const rank = s=>SCOPES.indexOf(s);
+const scopeOf = o=>o.city==='Maldives'?'world':o.city!=='Dubai'?'uae':o.km<=10?'near':'dubai';
+const inScope = o=>rank(scopeOf(o))<=rank(S.scope);
+const inLoc = (o,l)=>l.areas?l.areas.includes(o.k):o.city===l.city;
+const needScope = l=>l.city?(l.city==='Maldives'?'world':l.city==='Dubai'?'dubai':'uae'):SCOPES[Math.max(...l.areas.map(a=>rank(scopeOf(AREA[a]))))];
+const outsideLabel = ()=>({near:'Further away',dubai:'Outside Dubai',uae:'Outside the UAE',world:''}[S.scope]);
+
+/* ---------------- query understanding ---------------- */
+function parse(raw){
+  let qn=norm(raw).replace(/[^a-z0-9& ]/g,' ').replace(/\s+/g,' ').trim();
+  let q=' '+qn+' ', loc=null, cat=null;
+  const aliases=[]; LOCS.forEach(l=>l.aliases.forEach(a=>aliases.push([a,l]))); aliases.sort((a,b)=>b[0].length-a[0].length);
+  const exactAlias = aliases.find(([a])=>a===qn);
+  const nameHit = qn.length>2 && M.some(m=>norm(m.name).startsWith(qn));
+  if(exactAlias || !nameHit){
+    for(const [a,l] of aliases){ if(q.includes(' '+a+' ')){ loc=l; q=q.replace(' '+a+' ',' '); break; } }
+  }
+  let words=q.trim().split(' ').filter(Boolean);
+  words=words.filter(w=>{ if(CATWORDS[w]){ cat=CATWORDS[w]; return TAGWORDS.has(w); } return !STOP.has(w); });
+  return {raw, loc, cat, text:words.join(' ')};
+}
+function scoreText(m,text){
+  if(!text) return {s:10};
+  const n=norm(m.name), nw=n.split(/[ &-]+/), tags=m.tags.map(norm);
+  if(n===text) return {s:120};
+  if(n.startsWith(text)) return {s:100};
+  if(nw.some(w=>w.startsWith(text))) return {s:90};
+  if(n.includes(text)) return {s:80};
+  const words=text.split(' ');
+  const wordHit=w=>tags.some(t=>t.startsWith(w)||t.split(' ').some(tw=>tw.startsWith(w))||(w.length>3&&w.startsWith(t)))||nw.some(x=>x.startsWith(w))||(SYN[w]&&tags.includes(SYN[w]));
+  if(words.every(wordHit)) return {s:60};
+  if(text.length>=5){ const pre=n.slice(0,text.length); if(lev(text,pre)<=2) return {s:45,fix:m.name}; }
+  let fix=null;
+  const ok=words.every(w=>{ if(w.length<4) return false; for(const c of [...tags,...nw]){ if(c.length>=3&&lev(w,c)<=(w.length>6?2:1)){ fix=fix||m.tags.find(t=>norm(t)===c)||c; return true; } } return false; });
+  return ok?{s:40,fix}:null;
+}
+function compute(applyFilters=true){
+  const p=parse(S.q); let fix=null; let rows=[];
+  for(const m of M){
+    const r=scoreText(m,p.text); if(!r) continue;
+    let outs=m.out.map(k=>({k,...AREA[k]}));
+    if(p.loc) outs=outs.filter(o=>inLoc(o,p.loc));
+    if(!outs.length) continue;
+    rows.push({m,s:r.s,fix:r.fix,outs:outs.sort((a,b)=>a.km-b.km)});
+  }
+  const strong=rows.some(x=>x.s>=60);
+  if(strong) rows=rows.filter(x=>x.s>=60||x.s===10);
+  else {
+    // prefer a shared tag/category correction (e.g. "Sushi") over one merchant's own
+    // name just because it happened to match first — a name-prefix fix (s===45) only
+    // tells you about that one merchant, not what the whole result set has in common.
+    const candidates=rows.filter(x=>x.fix);
+    const shared=candidates.find(x=>!(x.s===45&&x.fix===x.m.name));
+    fix=(shared||candidates[0]||{}).fix||null;
+  }
+  rows.forEach(x=>{ x.inOuts=x.outs.filter(inScope); x.near=x.inOuts[0]||x.outs[0]; });
+  if(applyFilters) rows=rows.filter(x=>(!S.rating||x.m.rating>=4.5)&&(!S.bookable||x.m.reserve==='instant')&&[...S.filters].every(f=>x.m.tags.includes(f)));
+  const sorter={relevance:(a,b)=>b.s-a.s||a.near.km-b.near.km,nearest:(a,b)=>a.near.km-b.near.km,rating:(a,b)=>b.m.rating-a.m.rating,newest:(a,b)=>M.indexOf(b.m)-M.indexOf(a.m)}[S.sort];
+  rows.sort(sorter);
+  return {p,fix,inS:rows.filter(x=>x.inOuts.length),outS:rows.filter(x=>!x.inOuts.length),rows};
+}
+
+/* ---------------- elements ---------------- */
+const screen=$('#screen'), input=$('#q'), field=$('#field'), content=$('#content'), hdr=$('#hdr');
+
+/* rotating placeholder */
+const PH=['“sushi in marina”','“Fogo de Chão”','“staycation”','“brunch in Abu Dhabi”','“kids activities”'];
+let phI=0; const phRot=$('#phRot');
+setInterval(()=>{ if(field.classList.contains('has-value')) return; phRot.className='ph-rot out'; setTimeout(()=>{ phI=(phI+1)%PH.length; phRot.textContent=PH[phI]; phRot.className='ph-rot in'; },260); },2800);
+
+/* ---------------- modes ---------------- */
+function setMode(m){
+  S.mode=m; screen.dataset.mode=m;
+  $('#mapBtn').innerHTML = (m==='results'&&S.view==='map')?ICON.list:ICON.map;
+  $('#mapBtn').setAttribute('aria-label',(m==='results'&&S.view==='map')?'List view':'Map view');
+}
+function syncField(){ field.classList.toggle('has-value',!!input.value); }
+
+/* ---------------- idle ---------------- */
+function renderIdle(){
+  setMode('idle'); hdr.classList.remove('shadow');
+  const cnt=c=>M.filter(m=>m.cat===c&&m.out.some(k=>AREA[k].city==='Dubai')).length;
+  content.innerHTML=`<div class="view enter">
+    ${S.recents.length?`<section class="sec collapse" id="recentSec"><div><div class="sec-h"><h3>Recent searches</h3><button class="link" data-act="clearrecents">Clear All</button></div>
+      <div class="chips">${S.recents.map((r,i)=>`<button class="chip anim" style="--i:${i}" data-act="q" data-q="${esc(r)}">${ICON.hist}${esc(r)}</button>`).join('')}</div></div></section>`:''}
+    <section class="sec"><div class="sec-h"><h3>Search by category</h3></div>
+      <div class="cats">${Object.keys(CAT).map((c,i)=>`<button class="cat anim" style="--i:${i+2}" data-act="q" data-q="${CAT[c]}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="ct"><b>${CAT[c]}</b><small>${cnt(c)} in Dubai</small></span></button>`).join('')}</div>
+    </section>
+    <section class="sec"><div class="sec-h"><h3>Search by location</h3></div>
+      <div class="chips row">${[['Dubai Mall','dubai mall'],['Dubai Marina','marina'],['JBR','jbr'],['Palm Jumeirah','palm'],['Abu Dhabi','abu dhabi'],['Maldives','maldives']].map(([l,q],i)=>`<button class="chip anim" style="--i:${i+3}" data-act="q" data-q="${q}">${l==='Maldives'?ICON.plane:ICON.pin}${l}</button>`).join('')}</div>
+    </section>
+    <section class="sec"><div class="sec-h"><h3>Trending</h3></div>
+      <div class="chips">${['Brunch','Sushi in Marina','Staycation','Kids activities','Dubai Hills Mall','Breakfast'].map((t,i)=>`<button class="chip anim" style="--i:${i+4}" data-act="q" data-q="${t}">${ICON.trend}${t}</button>`).join('')}</div>
+    </section>
+  </div>`;
+}
+
+/* ---------------- suggestions ---------------- */
+let prevKeys=new Set();
+function renderSuggest(){
+  setMode('typing');
+  const raw=input.value; const qn=norm(raw);
+  if(!qn){ prevKeys=new Set(); renderIdleInTyping(); return; }
+  const p=parse(raw); const keys=new Set(); let html='';
+  const a=(k)=>{ keys.add(k); return prevKeys.has(k)?'':'anim'; };
+  let idx=0;
+  const savedQ=S.q; S.q=raw; const scopeSave=S.scope; S.scope='world'; const res=compute(false); S.scope=scopeSave; S.q=savedQ;
+
+  // live intent chips: show the query resolving into cuisine/venue + location + category as you type
+  const live=[];
+  if(p.text) live.push(cap(p.text));
+  if(p.loc) live.push(p.loc.label);
+  if(p.cat) live.push(CAT[p.cat]);
+  else if(p.text){ const top=res.rows.find(r=>r.s>=60); if(top) live.push(CAT[top.m.cat]); }
+  if(live.length) html+=`<div class="livechips">${live.map((l,i)=>`<span class="token" style="--i:${i}">${esc(l)}</span>`).join('')}</div>`;
+
+  // smart composite
+  if(p.loc && (p.text||p.cat)){
+    const label=`${p.text?cap(p.text):CAT[p.cat]} in ${p.loc.label}`;
+    html+=`<button class="sg hero ${a('h:'+label)}" style="--i:${idx++}" data-act="q" data-q="${esc(raw)}"><span class="ic">${ICON.search}</span><span class="t"><div>${esc(label)}</div><small>${res.rows.length} place${res.rows.length===1?'':'s'} · ${res.rows.reduce((s,x)=>s+x.m.offers.length,0)} offers</small></span><span class="arrow">${ICON.arrow}</span></button>`;
+  }
+  // merchants
+  const names=M.map(m=>{ const r=scoreText(m,p.loc&&!p.text?'':(p.text||qn)); return r&&r.s>=45&&(p.text||!p.loc)?{m,r}:null; }).filter(Boolean)
+    .filter(x=>x.r.s>=80||x.r.s===45).sort((x,y)=>y.r.s-x.r.s||Math.min(...x.m.out.map(k=>AREA[k].km))-Math.min(...y.m.out.map(k=>AREA[k].km))).slice(0,4);
+  if(names.length){
+    html+=`<div class="sg-group"><div class="sg-label">Venues</div>${names.map(({m})=>{const near=m.out.map(k=>AREA[k]).sort((x,y)=>x.km-y.km)[0];
+      return `<button class="sg ${a('m:'+m.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${m.id}">${logo(m,'sm')}<span class="t"><div>${hl(m.name,fold(p.text||qn))}</div><small>${m.tags[0]} · ${esc(near.name)} · ${fmtKm(near.km)}${m.out.length>1?` · ${m.out.length} locations`:''}</small></span><span class="tail">${aed(m.save)}</span></button>`}).join('')}</div>`;
+  }
+  // tags / cuisines
+  const t=p.text; const tagCounts={};
+  if(t){ M.forEach(m=>m.tags.forEach(tg=>{ const n=norm(tg); if(n.startsWith(t)||n.split(' ').some(w=>w.startsWith(t))||(SYN[t]===n)) tagCounts[tg]=(tagCounts[tg]||[]).concat(m.cat); })); }
+  const tags=Object.entries(tagCounts).sort((x,y)=>y[1].length-x[1].length).slice(0,3);
+  if(tags.length){
+    html+=`<div class="sg-group"><div class="sg-label">Cuisines & types</div>${tags.map(([tg,cats])=>{const c=cats[0];
+      return `<button class="sg ${a('t:'+tg)}" style="--i:${idx++}" data-act="q" data-q="${esc(tg+(p.loc?' in '+p.loc.label:''))}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="t"><div>${hl(tg,t)}${p.loc?` <span style="color:var(--muted)">in ${esc(p.loc.label)}</span>`:''}</div><small>${CAT[c]} · ${cats.length} place${cats.length>1?'s':''}</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`;
+  }
+  // places
+  const places=LOCS.filter(l=>l.aliases.some(al=>al.startsWith(qn)||(' '+al).includes(' '+qn))&&qn.length>=2).slice(0,3);
+  if(places.length&&!p.text){
+    html+=`<div class="sg-group"><div class="sg-label">Places</div>${places.map(l=>{const n=M.filter(m=>m.out.some(k=>inLoc({k,...AREA[k]},l))).length; const far=needScope(l);
+      return `<button class="sg ${a('p:'+l.key)}" style="--i:${idx++}" data-act="q" data-q="${esc(l.label)}"><span class="ic">${far==='world'?ICON.plane:ICON.pin}</span><span class="t"><div>${hl(l.label,qn)}</div><small>${l.city?(far==='world'?'Worldwide':'Emirate'):'Area in Dubai'} · ${n} places with offers</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`;
+  }
+  // categories
+  const catHit=Object.keys(CAT).filter(c=>CAT[c].toLowerCase().startsWith(qn));
+  if(catHit.length){
+    html+=`<div class="sg-group"><div class="sg-label">Categories</div>${catHit.map(c=>`<button class="sg ${a('c:'+c)}" style="--i:${idx++}" data-act="q" data-q="${CAT[c]}"><span class="ic" style="background:${CATICON[c][0]};color:${CATICON[c][1]}">${ICON[c]}</span><span class="t"><div>${hl(CAT[c],qn)}</div><small>Everything in ${CAT[c].toLowerCase()}</small></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}</div>`;
+  }
+  if(!html){
+    if(res.fix){
+      html=`<div class="dym ${a('dym')}">No exact matches. Did you mean <button data-act="q" data-q="${esc(res.fix)}">${esc(res.fix)}</button>?</div>`;
+    } else {
+      html=`<div class="dym ${a('none')}">Nothing matches “${esc(raw)}” yet. Try a venue, a cuisine like <button data-act="q" data-q="Sushi">sushi</button>, or a place like <button data-act="q" data-q="JBR">JBR</button>.</div>`;
+    }
+  }
+  html+=`<button class="see-all" data-act="submit">${ICON.search}<span>See all results for “${esc(raw)}”</span></button>`;
+  prevKeys=keys;
+  content.innerHTML=`<div class="view" style="padding-bottom:40px">${html}</div>`;
+}
+function renderIdleInTyping(){
+  content.innerHTML=`<div class="view">${S.recents.length?`<div class="sg-group"><div class="sg-label">Recent</div>${S.recents.map((r,i)=>`<button class="sg anim" style="--i:${i}" data-act="q" data-q="${esc(r)}"><span class="ic">${ICON.hist}</span><span class="t"><div>${esc(r)}</div></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}</div>`:''}
+  <div class="sg-group"><div class="sg-label">Popular right now</div>${['Brunch','Staycation','Kids activities'].map((r,i)=>`<button class="sg anim" style="--i:${i+3}" data-act="q" data-q="${r}"><span class="ic">${ICON.trend}</span><span class="t"><div>${r}</div></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}</div></div>`;
+}
+const cap=s=>s.replace(/\b\w/g,c=>c.toUpperCase());
+
+/* ---------------- results ---------------- */
+let toastMsg=null;
+function submit(q,opts={}){
+  S.q=(q??input.value).trim(); input.value=S.q; syncField(); input.blur();
+  if(S.q){ S.recents=[S.q,...S.recents.filter(r=>norm(r)!==norm(S.q))].slice(0,6); }
+  S.filters.clear(); S.rating=false; S.bookable=false; S.showOutside=false; S.sort=opts.sort||'relevance'; S.open.clear(); S.pin=0;
+  if(opts.scope) S.scope=opts.scope;
+  if(opts.view) S.view=opts.view; else if(!opts.keepView) S.view='list';
+  const p=parse(S.q);
+  S.tab=p.cat||'all';
+  toastMsg=null;
+  if(p.loc){ const need=needScope(p.loc); if(rank(need)>rank(S.scope)){ S.scope=need; toastMsg=`${ICON.globe}<span>Searching ${esc(p.loc.label)}, so we widened your search to <b>${SCOPE[need]}</b>.</span>`; } }
+  // refine chips from the unfiltered result set
+  const base=compute(false); const counts={};
+  [...base.inS,...base.outS].forEach(x=>x.m.tags.forEach(t=>{ if(!norm(p.text).includes(norm(t))&&norm(t)!==norm(p.text)) counts[t]=(counts[t]||0)+1; }));
+  S.tagChips=Object.entries(counts).filter(([,n])=>n>=2).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([t])=>t);
+  S.lastCount=null;
+  setMode('results');
+  showSkeleton();
+  setTimeout(()=>{ renderResults(true); if(toastMsg) toast(toastMsg,3600); },420);
+}
+function showSkeleton(){
+  renderHeaderRes(compute());
+  content.scrollTop=0;
+  content.innerHTML=`<div class="view"><div class="meta"><span>Searching…</span></div><div class="list">${[0,1,2,3].map(()=>`<div class="sk"><i style="width:78px;height:78px;border-radius:12px"></i><div style="flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px"><i style="width:60%;height:14px"></i><i style="width:85%;height:12px"></i><i style="width:45%;height:12px"></i></div></div>`).join('')}</div></div>`;
+}
+function renderHeaderRes(r){
+  const p=r.p;
+  // tokens
+  let tk=[];
+  if(p.text) tk.push(['text',r.fix&&!r.inS.concat(r.outS).some(x=>x.s>=60)?r.fix:cap(p.text),'']);
+  if(p.cat&&!(p.text&&TAGWORDS.has(p.text))) tk.push(['cat',CAT[p.cat],'']);
+  if(p.loc) tk.push(['loc',p.loc.label,ICON.pin]);
+  $('#tokens').innerHTML = tk.length
+    ? `<span class="tok-label">Showing</span>`+tk.map(([k,l,ic],i)=>`<button class="token" style="--i:${i}" data-act="token" data-k="${k}" aria-label="Remove ${esc(l)}">${ic}${esc(l)}<span class="x">${ICON.x}</span></button>`).join('')
+    : `<span class="tok-label">Showing</span><span class="token">${S.scope==='near'?'Everything near you':'Everything'}</span>`;
+  // filters
+  const outsideScopeCount = SCOPES.map(s=>{ const keep=S.scope; S.scope=s; const c=compute().inS.length; S.scope=keep; return c; });
+  S._scopeCounts=outsideScopeCount;
+  const tags=[...new Set([...S.filters,...S.tagChips])];
+  const showBook = [...r.inS,...r.outS].some(x=>x.m.reserve==='instant') || S.bookable;
+  $('#filters').innerHTML=
+    `<button class="fchip ${S.sort!=='relevance'?'on':''}" data-act="filters">${ICON.sliders}Filters${ICON.chev}</button>`+
+    `<button class="fchip ${S.rating?'on':''}" data-act="rating">${ICON.check}${ICON.star} 4.5+</button>`+
+    (showBook?`<button class="fchip ${S.bookable?'on':''}" data-act="bookable">${ICON.check}Live availability</button>`:'')+
+    tags.map(t=>`<button class="fchip ${S.filters.has(t)?'on':''}" data-act="tag" data-t="${esc(t)}">${ICON.check}${esc(t)}</button>`).join('');
+  // tabs
+  const counts={all:r.inS.length}; Object.keys(CAT).forEach(c=>counts[c]=r.inS.filter(x=>x.m.cat===c).length);
+  $('#tabs').innerHTML=['all',...Object.keys(CAT)].map(t=>`<button class="tab ${S.tab===t?'on':''} ${counts[t]?'':'zero'}" data-act="tab" data-t="${t}">${t==='all'?'All':CAT[t]}<span class="n">${counts[t]}</span></button>`).join('')+`<span class="tab-ind" id="tabInd"></span>`;
+  requestAnimationFrame(moveInd);
+}
+function moveInd(){ const on=$('#tabs .tab.on'), ind=$('#tabInd'); if(!on||!ind) return; ind.style.left=on.offsetLeft+'px'; ind.style.width=on.offsetWidth+'px'; }
+
+function card(x,i,p,opts={}){
+  const m=x.m, near=x.near, others=(x.inOuts.length?x.outs:x.outs);
+  const open=S.open.has(m.id);
+  const moreN=others.length-1;
+  const flag=m.reserve==='instant'?`<span class="dot">·</span><b class="f-live">Live booking</b>`
+    :m.reserve==='call'?`<span class="dot">·</span><b class="f-call">Call ahead</b>`:'';
+  return `<article class="card ${opts.compact?'compact':''} ${opts.noAnim?'':'anim'}" style="--i:${i}">
+    <div class="card-main" role="button" tabindex="0" data-act="open" data-id="${m.id}" aria-label="${esc(m.name)}">
+      ${photoBanner(m)}
+      <div class="info">
+        <div class="nm">${hl(m.name,fold(p.text))}</div>
+        <div class="cmeta">${esc(m.tags[0])}<span class="dot">·</span>${fmtKm(near.km)}<span class="dot">·</span><b>${esc(near.name)}</b>${flag}</div>
+        <div class="coffer"><b>${esc(m.offers[0][0])} — ${esc(m.offers[0][1])}</b><span class="csave">Save ${aed(m.save)}</span></div>
+      </div>
+    </div>
+    <span class="b-rate">★ ${m.rating}</span>
+    <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
+    ${moreN>0&&!opts.compact?`<button class="cmore ${open?'open':''}" data-act="locs" data-id="${m.id}">${moreN} more location${moreN>1?'s':''}${p.loc?' in '+esc(p.loc.label):''} ${ICON.chev}</button>
+      <div class="collapse ${open?'':'shut'}"><div><div class="outlets">${others.slice(1).map(o=>`<button class="outlet ${inScope(o)?'':'dim'}" data-act="open" data-id="${m.id}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}</div></div></div>`:''}
+  </article>`;
+}
+
+function renderResults(animate){
+  const r=compute(); renderHeaderRes(r);
+  const p=r.p;
+  const byTab=x=>S.tab==='all'||x.m.cat===S.tab;
+  const list=r.inS.filter(byTab), outside=r.outS.filter(byTab);
+  $('#mapBtn').innerHTML=S.view==='map'?ICON.list:ICON.map;
+  if(S.view==='map'){ renderMap(list,outside,p); return; }
+
+  let html='';
+  const offers=list.reduce((s,x)=>s+x.m.offers.length,0);
+  const bump = S.lastCount!==null && S.lastCount!==list.length;
+  html+=`<div class="meta"><span><b class="${bump?'bump':''}">${list.length}</b> place${list.length===1?'':'s'} · ${offers} offers <button class="scopenote" data-act="scope">${SCOPE_INLINE[S.scope]}</button></span><span>${SORTS[S.sort]}</span></div>`;
+  S.lastCount=list.length;
+  if(r.fix && !r.rows.some(x=>x.s>=60)) html+=`<div class="banner">${ICON.info}<span>Showing results for <b>${esc(r.fix)}</b>. No exact matches for “${esc(p.text)}”.</span></div>`;
+  if(!list.length && outside.length){
+    html+=`<div class="banner">${ICON.info}<span>Nothing in ${SCOPE[S.scope]==='Near me'?'your area':SCOPE[S.scope]} for “${esc(S.q)}”. Here ${outside.length===1?'is the match':`are ${outside.length} matches`} further away.</span></div>`;
+    S.showOutside=true;
+  }
+  if(list.length) html+=`<div class="list">${list.map((x,i)=>card(x,i,p,{noAnim:!animate})).join('')}</div>`;
+  if(outside.length){
+    if(list.length) html+=`<button class="outside-btn ${S.showOutside?'open':''}" data-act="outside"><span>${outsideLabel()} · ${outside.length} more ${ICON.chev}</span></button>`;
+    html+=`<div class="collapse ${S.showOutside?'':'shut'}"><div><div class="list">${outside.map((x,i)=>card(x,i,p,{noAnim:true})).join('')}</div></div></div>`;
+  }
+  if(!list.length && !outside.length){
+    const wider = rank(S.scope)<3 ? `<button class="primary" data-act="setscope" data-v="world">${ICON.globe}Search worldwide</button>`:'';
+    const hasFilters = S.rating||S.bookable||S.filters.size;
+    html+=`<div class="empty anim"><div class="big">${ICON.search.replace('width="18" height="18"','width="34" height="34"')}</div>
+      <h4>No offers for “${esc(S.q)}”${S.tab!=='all'?' in '+CAT[S.tab]:''}</h4>
+      <p>${hasFilters?'Your filters might be too narrow.':'Check the spelling, or search for a cuisine, a place or a venue name.'}</p>
+      ${hasFilters?`<button class="primary" data-act="clearfilters">Clear filters</button>`:wider}
+      <div class="chips" style="margin-top:18px">${['Brunch','Sushi','Staycation','Kids'].map(t=>`<button class="chip" data-act="q" data-q="${t}">${ICON.trend}${t}</button>`).join('')}</div></div>`;
+  }
+  content.innerHTML=`<div class="view ${animate?'enter':''}">${html}</div>`;
+}
+
+/* ---------------- map ---------------- */
+function renderMap(list,outside,p){
+  const pts=list.filter(x=>x.near.x!=null);
+  const off=list.length-pts.length+outside.length;
+  S.pin=Math.min(S.pin,Math.max(0,list.length-1));
+  const pinW=t=>14+t.length*6.3;
+  const pins=pts.map((x,i)=>{ const t=aed(x.m.save); const w=pinW(t); const li=list.indexOf(x);
+    return `<g class="pin ${li===S.pin?'on':''}" data-act="pin" data-i="${li}" transform="translate(${x.near.x},${x.near.y})"><g class="pin-in" style="animation-delay:${i*55}ms"><g class="pin-sc">
+      <path d="M-5 -9 L0 -2 L5 -9Z" fill="#fff"/><rect x="${-w/2}" y="-31" width="${w}" height="23" rx="11.5" fill="#fff" stroke="rgba(20,30,60,.12)"/>
+      <text x="0" y="-15.5" text-anchor="middle" font-size="11" font-weight="700" fill="#121318" font-family="Inter,-apple-system,sans-serif">${t}</text></g></g></g>`; }).join('');
+  content.innerHTML=`<div class="mapwrap">
+    <svg class="map-svg" viewBox="20 120 360 420" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Map of results">
+      <rect x="0" y="0" width="420" height="600" fill="var(--land)"/>
+      <path d="M0 0H420V110C360 128 312 150 268 176C222 202 182 220 140 238C100 256 60 276 0 300Z" fill="var(--sea)"/>
+      <g fill="var(--land)"><rect x="95" y="228" width="7" height="34" rx="3"/>${[-60,-35,-12,12,35,60].map(a=>`<rect x="96" y="194" width="5" height="36" rx="2.5" transform="rotate(${a} 98.5 230)"/>`).join('')}<path d="M70 214a30 30 0 0 1 58 0" fill="none" stroke="var(--land)" stroke-width="4"/></g>
+      <path d="M298 160C304 196 318 228 312 258C306 290 330 322 352 372" stroke="var(--sea)" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M0 372C80 352 160 314 232 302C282 294 332 262 420 214" stroke="var(--road)" stroke-width="6" fill="none"/>
+      <path d="M40 440C120 410 200 380 270 350C320 330 360 320 420 300" stroke="var(--road)" stroke-width="4" fill="none"/>
+      <path d="M150 470C170 400 210 330 240 260" stroke="var(--road)" stroke-width="3" fill="none"/>
+      <g font-family="Inter,-apple-system,sans-serif" font-size="9" fill="#8C8A84" letter-spacing=".08em">
+        <text x="120" y="180" fill="#7C98BE" font-style="italic" letter-spacing=".2em">ARABIAN GULF</text>
+        <text x="30" y="360">MARINA</text><text x="236" y="338">DOWNTOWN</text><text x="330" y="200">DEIRA</text><text x="140" y="410">AL BARSHA</text>
+      </g>
+      <g transform="translate(260,310)"><circle class="pulse" r="7" fill="var(--blue)"/><circle r="6.5" fill="var(--blue)" stroke="#fff" stroke-width="2.5"/></g>
+      ${pins}
+    </svg>
+    ${off?`<div class="offmap">${ICON.globe}${off} more outside this map <button class="link" data-act="view" style="margin-left:4px">List</button></div>`:''}
+    <div class="carousel" id="carousel">${list.map((x,i)=>card(x,i,p,{compact:true,noAnim:true})).join('')}</div>
+    ${!list.length?`<div class="offmap" style="top:auto;bottom:120px">No places in ${SCOPE[S.scope]} for this search</div>`:''}
+  </div>`;
+  const car=$('#carousel'); if(!car) return;
+  if(S.pin) car.scrollLeft=S.pin*300;
+  let t; car.addEventListener('scroll',()=>{ clearTimeout(t); t=setTimeout(()=>{ const i=Math.round(car.scrollLeft/300); if(i!==S.pin){ S.pin=i; document.querySelectorAll('.pin').forEach(g=>g.classList.toggle('on',+g.dataset.i===i)); } },60); });
+}
+
+/* ---------------- sheet ---------------- */
+const sheet=$('#sheet'), scrim=$('#scrim'), sheetBody=$('#sheetBody'), sheetFoot=$('#sheetFootFixed');
+function openSheet(html,footHtml){
+  sheetBody.innerHTML=html; sheetBody.scrollTop=0; sheet.style.transform='';
+  if(footHtml){ sheetFoot.innerHTML=footHtml; sheetFoot.hidden=false; } else { sheetFoot.hidden=true; sheetFoot.innerHTML=''; }
+  requestAnimationFrame(()=>{ sheet.classList.add('on'); scrim.classList.add('on'); });
+}
+function closeSheet(){ sheet.classList.remove('on'); scrim.classList.remove('on'); sheet.style.transform=''; }
+function openMerchant(id){
+  const m=BYID[id]; const p=parse(S.q);
+  const outs=m.out.map(k=>({k,...AREA[k]})).sort((a,b)=>a.km-b.km);
+  const near=outs[0];
+  openSheet(`
+    <div class="sh-head">${logo(m)}<div style="min-width:0"><h2>${esc(m.name)}</h2><p>${ICON.star} ${m.rating} · ${m.tags.join(' · ')}</p><p>${esc(m.price)}</p></div></div>
+    <div class="savebig"><div><small>Save up to</small><b>AED <span id="countup">0</span></b></div><span class="tag">${m.offers.length} offer${m.offers.length>1?'s':''}</span></div>
+    <div class="sh-sec"><h4>Offers</h4>${m.offers.map(([b,t,s],i)=>`<div class="offer-row anim" style="--i:${i+1}"><span class="badge">${esc(b)}</span><span class="t"><b>${esc(t)}</b><small>${esc(s)}</small></span></div>`).join('')}
+      <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">${m.offers.some(o=>o[0]==='Buy 1 Get 1')?'Buy 1 Get 1 Free needs 2+ guests to redeem — groups of 8+ can use up to 4 offers in one visit.':'Offers are valid at every location below.'}</p></div>
+    <div class="sh-sec"><h4>${outs.length} location${outs.length>1?'s':''}</h4>${outs.map(o=>`<div class="loc-row ${p.loc&&inLoc(o,p.loc)?'hit':''}"><span style="color:var(--muted)">${ICON.pin}</span><span class="t"><span>${esc(o.name)}</span><small>${esc(o.city)}${o===near?' · Nearest to you':''}</small></span><span class="k">${fmtKm(o.km)}</span><button class="dir" data-act="toast" data-msg="Opens directions in Maps">Directions</button></div>`).join('')}</div>
+    <div class="sh-foot">${m.reserve==='instant'
+      ?`<button class="primary" data-act="toast" data-msg="Opens live rates for your dates">Check live availability</button><p>One of the few places with real-time booking in the app</p>`
+      :m.reserve==='call'
+      ?`<button class="primary" data-act="toast" data-msg="Calls ${esc(near.name)} to book">Call to book</button><p>Mention your ENTERTAINER offer when booking, then show it again at check-in to redeem</p>`
+      :`<button class="secondary" data-act="toast" data-msg="Opens directions to ${esc(near.name)}">Get directions</button><p>Show this offer when you pay — staff enter a 4-digit PIN to apply it</p>`}</div>`);
+  const el=$('#countup'); const target=m.save; const t0=performance.now(); const dur=700;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (function step(t){ const k=reduce?1:Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-k,3); el.textContent=Math.round(target*e).toLocaleString('en-US'); if(k<1) requestAnimationFrame(step); })(t0);
+}
+function openScope(){
+  const c=S._scopeCounts||[];
+  openSheet(`<div class="sheet-title">Search in</div>${SCOPES.map((s,i)=>`<button class="opt ${S.scope===s?'on':''}" data-act="setscope" data-v="${s}"><span class="radio"></span><span class="t">${SCOPE[s]}<small>${SCOPE_SUB[s]}</small></span><span class="cnt">${c[i]??''} results</span></button>`).join('')}`);
+}
+function openSort(){
+  openSheet(`<div class="sheet-title">Sort by</div>${Object.keys(SORTS).map(s=>`<button class="opt ${S.sort===s?'on':''}" data-act="setsort" data-v="${s}"><span class="radio"></span><span class="t">${SORTS[s]}</span></button>`).join('')}`);
+}
+
+/* ---------------- filters sheet (sidebar + panel) ---------------- */
+const FCATS=['sort','scope','cuisines','rating','redeem'];
+const FLABEL={sort:'Sort by',scope:'Location',cuisines:'Cuisines',rating:'Rating',redeem:'Redemption'};
+const FICON={sort:ICON.sliders,scope:ICON.pin,cuisines:ICON.tag,rating:ICON.star,redeem:ICON.bolt};
+let fTab='sort';
+const fActive={sort:()=>S.sort!=='relevance',scope:()=>false,cuisines:()=>S.filters.size>0,rating:()=>S.rating,redeem:()=>S.bookable};
+function openFilters(tab){ fTab=tab||'sort'; renderFilters(); }
+function filterPanel(tab,c){
+  if(tab==='sort') return Object.keys(SORTS).map(s=>`<button class="opt ${S.sort===s?'on':''}" data-act="fset" data-k="sort" data-v="${s}"><span class="radio"></span><span class="t">${SORTS[s]}</span></button>`).join('');
+  if(tab==='scope') return SCOPES.map((s,i)=>`<button class="opt ${S.scope===s?'on':''}" data-act="fset" data-k="scope" data-v="${s}"><span class="radio"></span><span class="t">${SCOPE[s]}<small>${SCOPE_SUB[s]}</small></span><span class="cnt">${c[i]??''} results</span></button>`).join('');
+  if(tab==='cuisines'){
+    const base=compute(false); const counts={};
+    [...base.inS,...base.outS].forEach(x=>x.m.tags.forEach(t=>counts[t]=(counts[t]||0)+1));
+    const tags=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    return `<h4>Cuisines &amp; types</h4><div>${tags.map(([t,n])=>`<button class="fchoice ${S.filters.has(t)?'on':''}" data-act="ftag" data-t="${esc(t)}">${esc(t)}<span style="opacity:.6">${n}</span></button>`).join('')}</div>`;
+  }
+  if(tab==='rating') return `<button class="opt ${S.rating?'on':''}" data-act="fset" data-k="rating" data-v="${S.rating?'0':'1'}"><span class="radio"></span><span class="t">Rated 4.5 and above</span></button>`;
+  if(tab==='redeem') return `<button class="opt ${!S.bookable?'on':''}" data-act="fset" data-k="redeem" data-v="0"><span class="radio"></span><span class="t">All redemption types<small>Walk-in, call-ahead and live booking</small></span></button><button class="opt ${S.bookable?'on':''}" data-act="fset" data-k="redeem" data-v="1"><span class="radio"></span><span class="t">Live availability only<small>The rare few with real-time booking in the app</small></span></button>`;
+  return '';
+}
+function renderFilters(){
+  const r=compute(); const c=S._scopeCounts||[];
+  const body=`<div class="fs-head"><div class="sheet-title">Filters</div><button class="fs-x" data-act="closesheet">${ICON.x}</button></div>
+    <div class="fs-body">
+      <div class="fs-rail">${FCATS.map(t=>`<button class="fs-tab ${fTab===t?'on':''}" data-act="ftab" data-t="${t}">${FICON[t]}<span>${FLABEL[t]}</span>${fActive[t]()?'<span class="fs-dot"></span>':''}</button>`).join('')}</div>
+      <div class="fs-panel">${filterPanel(fTab,c)}</div>
+    </div>`;
+  const foot=`<button class="link" data-act="clearfilters">Clear all</button><button class="primary" data-act="closesheet">Show ${r.inS.length} place${r.inS.length===1?'':'s'}</button>`;
+  openSheet(body,foot);
+}
+// drag-to-dismiss
+(()=>{ const grab=$('#grab'); let y0=null,dy=0;
+  grab.addEventListener('pointerdown',e=>{ y0=e.clientY; dy=0; sheet.classList.add('drag'); grab.setPointerCapture(e.pointerId); });
+  grab.addEventListener('pointermove',e=>{ if(y0===null) return; dy=Math.max(0,e.clientY-y0); sheet.style.transform=`translateY(${dy}px)`; });
+  const end=()=>{ if(y0===null) return; sheet.classList.remove('drag'); y0=null; if(dy>90) closeSheet(); else sheet.style.transform=''; };
+  grab.addEventListener('pointerup',end); grab.addEventListener('pointercancel',end);
+})();
+
+/* ---------------- toast ---------------- */
+let toastT; function toast(html,ms=2200){ const t=$('#toast'); t.innerHTML=html; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),ms); }
+
+/* ---------------- events ---------------- */
+input.addEventListener('focus',()=>{ if(S.mode!=='typing'){ prevKeys=new Set(); renderSuggest(); } });
+input.addEventListener('input',()=>{ syncField(); renderSuggest(); });
+input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if(input.value.trim()) submit(); } if(e.key==='Escape'){ cancel(); } });
+content.addEventListener('scroll',()=>hdr.classList.toggle('shadow',content.scrollTop>4));
+function cancel(){ input.blur(); if(S.q&&S.mode==='typing'){ input.value=S.q; syncField(); setMode('results'); renderResults(false); } else { input.value=''; S.q=''; syncField(); renderIdle(); } }
+
+document.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.matches('.card-main')){ e.preventDefault(); e.target.click(); } if(e.key==='Escape'&&sheet.classList.contains('on')) closeSheet(); });
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act, d=el.dataset;
+  switch(a){
+    case 'q': submit(d.q); break;
+    case 'submit': submit(); break;
+    case 'sugg-m': { const m=BYID[d.id]; input.blur(); submit(m.name); setTimeout(()=>openMerchant(m.id),480); break; }
+    case 'clear': e.preventDefault(); input.value=''; syncField(); input.focus(); renderSuggest(); break;
+    case 'cancel': cancel(); break;
+    case 'back': input.value=''; S.q=''; syncField(); closeSheet(); renderIdle(); break;
+    case 'focus': if(S.mode==='idle') input.focus(); else { closeSheet(); input.value=''; S.q=''; syncField(); renderIdle(); setTimeout(()=>input.focus(),50);} break;
+    case 'nav': toast(`${ICON.info}<span>This prototype covers the search journey.</span>`); break;
+    case 'clearrecents': {
+      const chips=document.querySelectorAll('#recentSec .chip'); chips.forEach((c,i)=>{ c.style.setProperty('--i',i); c.classList.add('gone'); });
+      setTimeout(()=>{ const s=$('#recentSec'); if(s) s.classList.add('shut'); },chips.length*45+200);
+      setTimeout(()=>{ S.recents=[]; },chips.length*45+600); break; }
+    case 'view':
+      if(S.mode!=='results'){ input.value=''; S.q=''; submit('',{scope:'near',view:'map'}); }
+      else { S.view=S.view==='map'?'list':'map'; S.pin=0; renderResults(true); }
+      break;
+    case 'open': openMerchant(d.id); break;
+    case 'heart': { if(S.saved.has(d.id)){ S.saved.delete(d.id); el.classList.remove('on'); } else { S.saved.add(d.id); el.classList.add('on'); toast(`${ICON.heart.replace('stroke-width="2"','stroke-width="2" fill="#E5384F" stroke="#E5384F"')}<span>Saved ${esc(BYID[d.id].name)} to your list</span>`,1800); } break; }
+    case 'locs': { const open=!S.open.has(d.id); open?S.open.add(d.id):S.open.delete(d.id); el.classList.toggle('open',open); el.nextElementSibling.classList.toggle('shut',!open); break; }
+    case 'outside': S.showOutside=!S.showOutside; el.classList.toggle('open',S.showOutside); el.nextElementSibling.classList.toggle('shut',!S.showOutside); break;
+    case 'tab': if(S.tab!==d.t){ S.tab=d.t; S.pin=0; renderResults(true); } break;
+    case 'rating': S.rating=!S.rating; renderResults(false); break;
+    case 'bookable': S.bookable=!S.bookable; renderResults(false); break;
+    case 'tag': S.filters.has(d.t)?S.filters.delete(d.t):S.filters.add(d.t); renderResults(false); break;
+    case 'clearfilters': S.filters.clear(); S.rating=false; S.bookable=false; S.sort='relevance'; renderResults(true); if(sheet.classList.contains('on')) renderFilters(); break;
+    case 'scope': openScope(); break;
+    case 'sort': openSort(); break;
+    case 'filters': openFilters(); break;
+    case 'ftab': fTab=d.t; renderFilters(); break;
+    case 'fset': {
+      if(d.k==='sort') S.sort=d.v;
+      else if(d.k==='scope'){ S.scope=d.v; S.showOutside=false; }
+      else if(d.k==='rating') S.rating=d.v==='1';
+      else if(d.k==='redeem') S.bookable=d.v==='1';
+      renderResults(false); renderFilters(); break;
+    }
+    case 'ftag': S.filters.has(d.t)?S.filters.delete(d.t):S.filters.add(d.t); renderResults(false); renderFilters(); break;
+    case 'setscope': S.scope=d.v; closeSheet(); if(S.mode==='results'){ S.showOutside=false; showSkeleton(); setTimeout(()=>renderResults(true),300); } break;
+    case 'setsort': S.sort=d.v; closeSheet(); renderResults(true); break;
+    case 'closesheet': closeSheet(); break;
+    case 'pin': { S.pin=+d.i; document.querySelectorAll('.pin').forEach(g=>g.classList.toggle('on',+g.dataset.i===S.pin)); const car=$('#carousel'); car&&car.scrollTo({left:S.pin*300,behavior:'smooth'}); break; }
+    case 'token': {
+      const p=parse(S.q); const parts={text:p.text, cat:p.cat&&!(p.text&&TAGWORDS.has(p.text))?CAT[p.cat]:'', loc:p.loc?'in '+p.loc.label:''};
+      parts[d.k]=''; if(d.k==='text'&&p.text&&TAGWORDS.has(p.text)) parts.cat='';
+      const nq=[parts.text,parts.cat,parts.loc].filter(Boolean).join(' ').replace(/^in /,'');
+      el.style.transition='transform .2s,opacity .2s'; el.style.transform='scale(.6)'; el.style.opacity='0';
+      setTimeout(()=>{ if(nq) submit(nq,{keepView:true}); else { input.value=''; S.q=''; syncField(); renderIdle(); } },180); break; }
+    case 'toast': toast(`${ICON.info}<span>${esc(d.msg)} (outside this prototype).</span>`); break;
+    case 'demo': demo(d.q); break;
+  }
+});
+
+/* typed demo from the notes panel */
+let demoT=null;
+function demo(q){
+  clearTimeout(demoT); closeSheet();
+  if(innerWidth<=500) document.querySelector('.phone').scrollIntoView({behavior:'smooth'});
+  input.value=''; syncField(); input.focus({preventScroll:true}); renderSuggest();
+  let i=0; const type=()=>{ i++; input.value=q.slice(0,i); syncField(); renderSuggest(); if(i<q.length) demoT=setTimeout(type,70+Math.random()*50); else demoT=setTimeout(()=>submit(),850); };
+  demoT=setTimeout(type,250);
+}
+addEventListener('resize',moveInd);
+
+renderIdle(); setMode('idle');
+</script>
+</body>
+</html>
