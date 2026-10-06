@@ -219,8 +219,8 @@ mark{background:none;color:var(--ink);font-weight:700}
 .cline1{color:var(--ink);margin-top:6px}
 .cline1 b{font-weight:650}
 .cline2{margin-top:4px;display:flex;align-items:center;gap:3px}
-.cline2 svg{flex:none;width:12px;height:12px;color:var(--star)}
 .cline2 b{color:var(--ink);font-weight:700}
+.rate-ic{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:13px;line-height:1}
 .cline1 .dot,.cline2 .dot{opacity:.55;margin:0 1px}
 .cline1 .f-call{color:#8A5A0B}
 .cline1 .f-live{color:var(--green)}
@@ -892,7 +892,7 @@ function card(x,i,p,opts={}){
       <div class="info">
         <div class="nm">${hl(m.name,fold(p.text))}</div>
         <div class="cline1"><b>${esc(m.offers[0][1])}</b><span class="dot">·</span>Save ${aed(m.save)}${flag}</div>
-        <div class="cline2">${ICON.star}<b>${m.rating}</b><span class="dot">·</span>${esc(near.name)}<span class="dot">·</span>${fmtKm(near.km)}</div>
+        <div class="cline2"><span class="rate-ic">😁</span><b>${m.rating}</b><span class="dot">·</span>${esc(near.name)}<span class="dot">·</span>${fmtKm(near.km)}</div>
       </div>
     </div>
     ${more}
@@ -907,7 +907,7 @@ function card(x,i,p,opts={}){
         <div class="coffer"><b>${esc(m.offers[0][0])} · ${esc(m.offers[0][1])}</b><span class="csave">Save ${aed(m.save)}</span></div>
       </div>
     </div>
-    <span class="b-rate">★ ${m.rating}</span>
+    <span class="b-rate"><span class="rate-ic">😁</span> ${m.rating}</span>
     <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
     ${more}
   </article>`;
@@ -996,7 +996,7 @@ function openMerchant(id){
   const outs=m.out.map(k=>({k,...AREA[k]})).sort((a,b)=>a.km-b.km);
   const near=outs[0];
   openSheet(`
-    <div class="sh-head">${logo(m)}<div style="min-width:0"><h2>${esc(m.name)}</h2><p>${ICON.star} ${m.rating} · ${m.tags.join(' · ')}</p><p>${esc(m.price)}</p></div></div>
+    <div class="sh-head">${logo(m)}<div style="min-width:0"><h2>${esc(m.name)}</h2><p><span class="rate-ic">😁</span> ${m.rating} · ${m.tags.join(' · ')}</p><p>${esc(m.price)}</p></div></div>
     <div class="savebig"><div><small>Save up to</small><b>AED <span id="countup">0</span></b></div><span class="tag">${m.offers.length} offer${m.offers.length>1?'s':''}</span></div>
     <div class="sh-sec"><h4>Offers</h4>${m.offers.map(([b,t,s],i)=>`<div class="offer-row anim" style="--i:${i+1}"><span class="badge">${esc(b)}</span><span class="t"><b>${esc(t)}</b><small>${esc(s)}</small></span></div>`).join('')}
       <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">${m.offers.some(o=>o[0]==='Buy 1 Get 1')?'Buy 1 Get 1 Free needs 2+ guests to redeem. Groups of 8+ can use up to 4 offers in one visit.':'Offers are valid at every location below.'}</p></div>
