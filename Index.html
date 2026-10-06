@@ -1032,7 +1032,7 @@ input.addEventListener('focus',()=>{ if(S.mode!=='typing'){ prevKeys=new Set(); 
 input.addEventListener('input',()=>{ syncField(); renderSuggest(); });
 input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); if(input.value.trim()) submit(); } if(e.key==='Escape'){ cancel(); } });
 content.addEventListener('scroll',()=>hdr.classList.toggle('shadow',content.scrollTop>4));
-function cancel(){ input.blur(); if(S.q&&S.mode==='typing'){ input.value=S.q; syncField(); setMode('results'); renderResults(false); } else { input.value=''; S.q=''; syncField(); renderIdle(); } }
+function cancel(){ input.blur(); input.value=''; S.q=''; syncField(); renderIdle(); }
 
 document.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.matches('.card-main')){ e.preventDefault(); e.target.click(); } if(e.key==='Escape'&&sheet.classList.contains('on')) closeSheet(); });
 document.addEventListener('click',e=>{
