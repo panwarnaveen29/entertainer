@@ -687,10 +687,11 @@ function setMode(m){
 function syncField(){ field.classList.toggle('has-value',!!input.value); }
 
 /* ---------------- idle ---------------- */
-function renderIdle(){
-  setMode('idle'); hdr.classList.remove('shadow');
-  content.innerHTML=`<div class="view enter">
-    ${S.recents.length?`<section class="sec collapse" id="recentSec"><div><div class="sec-h"><h3>Recent searches</h3><button class="link" data-act="clearrecents">Clear All</button></div>
+// Shared between the idle tab and the typing screen's empty-query state: tapping
+// clear or focusing the field with nothing typed should feel like the same screen
+// with a keyboard over it, not a different, thinner page.
+function idleSections(){
+  return `${S.recents.length?`<section class="sec collapse" id="recentSec"><div><div class="sec-h"><h3>Recent searches</h3><button class="link" data-act="clearrecents">Clear All</button></div>
       <div class="chips">${S.recents.map((r,i)=>`<button class="chip anim" style="--i:${i}" data-act="q" data-q="${esc(r)}">${ICON.hist}${esc(r)}</button>`).join('')}</div></div></section>`:''}
     <section class="sec"><div class="sec-h"><h3>Popular hotspots near you</h3></div>
       <div class="hotspots">${HOTSPOTS.map(([k,q],i)=>{const a=AREA[k]; const[dk,lt]=paletteFor(k);
@@ -701,8 +702,11 @@ function renderIdle(){
       <div class="trend-grid">${[0,1].map(row=>`<div class="trow">${TRENDS.filter((_,i)=>i%2===row).map(([t,cat],i)=>{const[bg,fg]=cat==='pin'?['#EEF0F5','#3B404C']:CATICON[cat];
         return `<button class="tcard anim" style="--i:${i*2+row+2}" data-act="q" data-q="${esc(t)}"><span class="tcard-ic" style="background:${bg};color:${fg}">${cat==='pin'?ICON.pin:ICON[cat]}</span><span>${esc(t)}</span></button>`;
       }).join('')}</div>`).join('')}</div>
-    </section>
-  </div>`;
+    </section>`;
+}
+function renderIdle(){
+  setMode('idle'); hdr.classList.remove('shadow');
+  content.innerHTML=`<div class="view enter">${idleSections()}</div>`;
 }
 
 /* ---------------- suggestions ---------------- */
@@ -769,8 +773,7 @@ function renderSuggest(){
   content.innerHTML=`<div class="view" style="padding-bottom:40px">${html}</div>`;
 }
 function renderIdleInTyping(){
-  content.innerHTML=`<div class="view">${S.recents.length?`<div class="sg-group"><div class="sg-label">Recent</div>${S.recents.map((r,i)=>`<button class="sg anim" style="--i:${i}" data-act="q" data-q="${esc(r)}"><span class="ic">${ICON.hist}</span><span class="t"><div>${esc(r)}</div></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}</div>`:''}
-  <div class="sg-group"><div class="sg-label">Popular right now</div>${['Brunch','Staycation','Kids activities'].map((r,i)=>`<button class="sg anim" style="--i:${i+3}" data-act="q" data-q="${r}"><span class="ic">${ICON.trend}</span><span class="t"><div>${r}</div></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}</div></div>`;
+  content.innerHTML=`<div class="view enter">${idleSections()}</div>`;
 }
 const cap=s=>s.replace(/\b\w/g,c=>c.toUpperCase());
 
