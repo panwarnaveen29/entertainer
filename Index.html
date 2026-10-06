@@ -228,6 +228,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .cline1,.cline2{font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cline1{color:var(--ink);margin-top:2px}
 .cline1 b{font-weight:650}
+.c1-main{opacity:.8}
 .cline2{margin-top:4px}
 .rate-ic{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:13px;line-height:1}
 .cline1 .dot,.cline2 .dot{opacity:.55;margin:0 1px}
@@ -923,7 +924,7 @@ function card(x,i,p,opts={}){
       </div>
       <div class="info">
         <div class="nm-row"><div class="nm">${hl(m.name,fold(p.text))}</div><span class="crate"><span class="rate-ic">😁</span><b>${m.rating}</b></span></div>
-        <div class="cline1"><b>${esc(m.offers[0][1])}</b><span class="dot">·</span>Save ${aed(m.save)}${flag}</div>
+        <div class="cline1"><span class="c1-main"><b>${esc(m.offers[0][1])}</b><span class="dot">·</span>Save ${aed(m.save)}</span>${flag}</div>
         <div class="cline2">${esc(near.name)}<span class="dot">·</span>${fmtKm(near.km)}</div>
       </div>
     </div>
