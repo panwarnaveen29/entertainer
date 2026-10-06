@@ -596,7 +596,7 @@ const ICON = {
 };
 const CATICON = {dining:['#FFF1E2','#C2620B'],hotels:['#E8F0FF','#2148D6'],attractions:['#F3E9FF','#7A33C9']};
 const HOTSPOTS=[['dubaimall','dubai mall'],['citywalk','city walk'],['hills','dubai hills'],['marina','marina'],['jbr','jbr'],['palm','palm']];
-const TRENDS=[['Brunch','dining'],['Sushi in Marina','dining'],['Staycation','hotels'],['Kids activities','attractions'],['Dubai Hills Mall','pin'],['Breakfast','dining']];
+const TRENDS=[['Fogo de Chão','dining'],['Palm Shore Resort','hotels'],['Sky Deck 148','attractions'],['Marina Social','dining'],['Wave Kingdom Waterpark','attractions'],['Downtown Loft Hotel','hotels']];
 
 /* ---------------- state ---------------- */
 const SCOPES=['near','dubai','uae','world'];
@@ -703,8 +703,8 @@ function idleSections(){
       }).join('')}</div>
     </section>
     <section class="sec"><div class="sec-h"><h3>Trending in Dubai</h3></div>
-      <div class="trend-grid">${[0,1].map(row=>`<div class="trow">${TRENDS.filter((_,i)=>i%2===row).map(([t,cat],i)=>{const[bg,fg]=cat==='pin'?['#EEF0F5','#3B404C']:CATICON[cat];
-        return `<button class="tcard anim" style="--i:${i*2+row+2}" data-act="q" data-q="${esc(t)}"><span class="tcard-ic" style="background:${bg};color:${fg}">${cat==='pin'?ICON.pin:ICON[cat]}</span><span>${esc(t)}</span></button>`;
+      <div class="trend-grid">${[0,1].map(row=>`<div class="trow">${TRENDS.filter((_,i)=>i%2===row).map(([t,cat],i)=>{const[bg,fg]=CATICON[cat];
+        return `<button class="tcard anim" style="--i:${i*2+row+2}" data-act="q" data-q="${esc(t)}"><span class="tcard-ic" style="background:${bg};color:${fg}">${ICON[cat]}</span><span>${esc(t)}</span></button>`;
       }).join('')}</div>`).join('')}</div>
     </section>`;
 }
