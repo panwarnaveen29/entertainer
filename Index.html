@@ -218,6 +218,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .info{min-width:0;padding:11px 16px 13px;transition:background .15s}
 .banner-wrap+.info{padding:11px 0 13px}
 .cbadge{position:absolute;top:15px;left:0;display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:0 999px 999px 0;background:#0D720E;color:#fff;font-size:11.5px;font-weight:700;white-space:nowrap;z-index:2}
+.cbadge.state{background:#6B7280}
 .nm-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .nm{font-size:16.5px;font-weight:750;line-height:1.3;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px;min-width:0}
 .nm-row .nm{flex:1}
@@ -340,6 +341,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .sh-sec{margin-top:18px}
 .sh-sec h4{margin:0 0 8px;font-size:15px}
 .offer-row{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+.offer-row.dim{opacity:.55}
 .offer-row .badge{width:58px;height:50px;border-radius:10px;background:var(--blue-soft);color:var(--blue-ink);font-size:12px;font-weight:800;display:grid;place-items:center;text-align:center;line-height:1.1;text-transform:uppercase;flex:none;padding:0 4px}
 .offer-row .t{flex:1;min-width:0}
 .offer-row .t b{display:block;font-size:14px}
@@ -411,7 +413,7 @@ mark{background:none;color:var(--ink);font-weight:700}
   <aside class="notes">
     <div>
       <div class="eyebrow">ENTERTAINER · Search redesign</div>
-      <h1>Find what you mean.</h1>
+      <h1>Search reads your words. It just doesn't rank by them.</h1>
     </div>
     <p>Search understands the intent behind your words, and ranks results accordingly. The app already parses "pizza near me" into words. What it doesn't do is rank by what those words mean. In testing, that search put a spa ahead of the pizza places, because it's matching text, not understanding intent. This redesign ranks on that understanding directly, on top of the merchant-per-outlet repeats and the scope that's never shown.</p>
     <div>
@@ -426,9 +428,13 @@ mark{background:none;color:var(--ink);font-weight:700}
     <div>
       <h2>Try</h2>
       <div class="try">
-        <button data-act="demo" data-q="pizza near me">pizza near me <small>· relevance + near you</small></button>
-        <button data-act="demo" data-q="pi">pi <small>· brand vs. cuisine</small></button>
+        <button data-act="demo" data-q="pi">pi <small>· ambiguous</small></button>
+        <button data-act="demo" data-q="pims">pims <small>· exact name</small></button>
+        <button data-act="demo" data-q="pizza near me">pizza near me <small>· relevance + near</small></button>
+        <button data-act="demo" data-q="sushi in marina">sushi in marina <small>· cuisine + place</small></button>
         <button data-act="demo" data-q="hurricans gril">hurricans gril <small>· typo</small></button>
+        <button data-act="demo" data-q="coffee">coffee <small>· multi-outlet</small></button>
+        <button data-act="demo" data-q="staycation">staycation <small>· hotels</small></button>
         <button data-act="demo" data-q="maldives">maldives <small>· global</small></button>
       </div>
     </div>
@@ -504,8 +510,13 @@ const AREA = {
   yas:{name:'Yas Mall, Abu Dhabi',city:'Abu Dhabi',km:128},
   yasbay:{name:'Yas Bay, Abu Dhabi',city:'Abu Dhabi',km:131},
   corniche:{name:'Corniche, Abu Dhabi',city:'Abu Dhabi',km:142},
-  maldives:{name:'North Malé Atoll, Maldives',city:'Maldives',km:3080}
+  maldives:{name:'North Malé Atoll',city:'Maldives',country:'Maldives',km:3080}
 };
+// Every area above defaults to UAE unless it already set its own country
+// (e.g. Maldives). Catalog scope is local/national/global; this is the field
+// that tells out-of-country outlets apart from an ordinary long drive.
+const HOME_COUNTRY='UAE';
+Object.values(AREA).forEach(a=>{ if(!a.country) a.country=HOME_COUNTRY; });
 const LOCS = [
   {key:'downtown',label:'Downtown Dubai',aliases:['downtown','downtown dubai'],areas:['dubaimall','skyplaza','businessbay','difc']},
   {key:'dubaimall',label:'The Dubai Mall',aliases:['dubai mall','the dubai mall'],areas:['dubaimall']},
@@ -538,7 +549,7 @@ const M = [
  ['sushiart','Sushi Art','dining',['Japanese','Sushi','Casual'],4.3,'AED 140 avg',150,[['Buy 1 Get 1','Sushi platters','Dine-in and pickup'],['25% off','Lunch boxes','Weekdays']],['citywalk','marinamall','hills','corniche'],['#C8102E','#fff','SUSHI<br>ART','Inter,sans-serif',14],null],
  ['tomo','Tomo','dining',['Japanese','Sushi','Rooftop'],4.6,'AED 260 avg',300,[['Buy 1 Get 1','Main courses','Dinner only'],['25% off','Omakase','Walk-in, subject to availability']],['wafi'],['#F4EFE6','#2A2A2A','友<br><span style="font-size:11px;letter-spacing:.2em">TOMO</span>','Georgia,serif',22],null],
  ['kaze','Kaze Sushi Bar','dining',['Japanese','Sushi','Waterfront'],4.5,'AED 210 avg',280,[['Buy 1 Get 1','Sushi & maki','Dinner, Sun–Thu'],['25% off','Sake pairing','With any set menu']],['marina','jbr'],['#111','#F4F1EA','風<br><span style="font-size:9px;letter-spacing:.2em">KAZE</span>','Georgia,serif',22],null],
- ['brick','Brick & Basil','dining',['Italian','Pizza','Family'],4.2,'AED 120 avg',120,[['Buy 1 Get 1','Pizzas','Any wood-fired pizza'],['Kids free','Kids eat free','With every adult main']],['jbr','hills','difc'],['#2F6B3B','#FFF4DC','B&amp;B<br><span style="font-size:9px;letter-spacing:.15em">PIZZERIA</span>','Georgia,serif',18],null],
+ ['brick','Brick & Basil','dining',['Italian','Pizza','Family'],4.2,'AED 120 avg',120,[['Buy 1 Get 1','Pizzas','Any wood-fired pizza','locked'],['Kids free','Kids eat free','With every adult main']],['jbr','hills','difc'],['#2F6B3B','#FFF4DC','B&amp;B<br><span style="font-size:9px;letter-spacing:.15em">PIZZERIA</span>','Georgia,serif',18],null],
  ['saffron','Saffron Lane Café','dining',['Cafe','Breakfast','Emirati'],4.4,'AED 75 avg',80,[['Bonus offer','Coffee','Reusable up to 4x a day'],['Buy 1 Get 1','Breakfast','Until 11:30am']],['jumeirah','citywalk'],['#F6C343','#4A2A0A','saffron<br><span style="font-size:9px">lane</span>','Georgia,serif',15],null],
  ['marinasocial','Marina Social','dining',['Mediterranean','Brunch','Waterfront'],4.5,'AED 280 avg',420,[['Buy 1 Get 1','Sunday brunch','House beverage package'],['Buy 1 Get 1','Main courses','Dinner']],['marina'],['#0E2A47','#fff','MARINA<br>SOCIAL','Inter,sans-serif',12],null],
  ['shorehouse','Shore House','dining',['Seafood','Beach','Brunch'],4.3,'AED 220 avg',260,[['Buy 1 Get 1','Seafood platters','Lunch and dinner'],['25% off','Beach brunch','Fridays']],['palm'],['#E6F3F7','#14607A','SHORE<br>HOUSE','Georgia,serif',13],null],
@@ -555,7 +566,9 @@ const M = [
  ['snow','Snow Peak','attractions',['Snow park','Kids','Indoor'],4.5,'Sessions AED 220',440,[['Buy 1 Get 1','Snow Classic','2-hour session']],['moe'],['#E8F4FF','#1A5BA8','❄<br><span style="font-size:10px;letter-spacing:.12em">SNOW PEAK</span>','Inter,sans-serif',22],null],
  ['dune','Dune Riders Safari','attractions',['Desert safari','Outdoor','Adventure'],4.6,'From AED 250',500,[['Buy 1 Get 1','Evening safari','BBQ dinner and pickup']],['desert'],['#D98A3A','#fff','DUNE<br>RIDERS','Inter,sans-serif',12],null],
  ['yasadv','Yas Adventure Park','attractions',['Theme park','Kids','Rides'],4.8,'Day ticket AED 345',690,[['Buy 1 Get 1','Day tickets','Show at entry, PIN redemption']],['yas'],['#C3122F','#FFD400','YAS<br><span style="font-size:9px;letter-spacing:.1em">ADVENTURE</span>','Inter,sans-serif',15],null],
- ['grounds','Common Grounds','dining',['Cafe','Coffee','Breakfast'],4.3,'AED 45 avg',45,[['Bonus offer','Coffee','Reusable up to 4x a day'],['Buy 1 Get 1','Pastries','All day']],['dubaimall','skyplaza','businessbay','marina','jbr','citywalk','hills','moe','festival'],['#3A2E22','#F2E4CF','COMMON<br><span style="font-size:9px;letter-spacing:.1em">GROUNDS</span>','Georgia,serif',12],null]
+ ['grounds','Common Grounds','dining',['Cafe','Coffee','Breakfast'],4.3,'AED 45 avg',45,[['Bonus offer','Coffee','Reusable up to 4x a day','used'],['Buy 1 Get 1','Pastries','All day']],['dubaimall','skyplaza','businessbay','marina','jbr','citywalk','hills','moe','festival'],['#3A2E22','#F2E4CF','COMMON<br><span style="font-size:9px;letter-spacing:.1em">GROUNDS</span>','Georgia,serif',12],null],
+ ['pims','PIMS','dining',['Bar','Cocktails'],4.0,'AED 85 avg',60,[['Buy 1 Get 1','House cocktails','After 6pm, dine-in only']],['citywalk'],['#2B1B3D','#E8C9FF','PIMS','Georgia,serif',20],null],
+ ['pickl',"Pickl",'dining',['Burgers','American'],4.1,'AED 70 avg',55,[['Buy 1 Get 1','Burgers','Dine-in only']],['businessbay'],['#C8102E','#fff','PICKL','Inter,sans-serif',16],null]
 ].map(r=>({id:r[0],name:r[1],cat:r[2],tags:r[3],rating:r[4],price:r[5],save:r[6],offers:r[7],out:r[8],logo:r[9],reserve:r[10]||null}));
 const BYID = Object.fromEntries(M.map(m=>[m.id,m]));
 
@@ -565,6 +578,11 @@ const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;
 const norm = s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’']/g,'').replace(/\s+/g,' ').trim();
 const fold = s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 const fmtKm = k=>k<1?Math.round(k*1000)+' m':k>=1000?Math.round(k).toLocaleString('en-US')+' km':k.toFixed(1)+' km';
+// A km figure implies "a drive away." Once the outlet is in a different
+// country, distance stops being the useful fact; where it is becomes the
+// useful fact instead.
+const farCountry = o=>o.country&&o.country!==HOME_COUNTRY;
+const locLine = o=>farCountry(o)?`${esc(o.name)}, ${esc(o.country)}`:`${fmtKm(o.km)}<span class="dot">·</span>${esc(o.name)}`;
 const aed = n=>'AED '+n.toLocaleString('en-US');
 function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
 function hl(name,text){
@@ -618,7 +636,11 @@ const PHOTO_SET=m=>m.cat==='dining'?[DINING_PHOTOS,DINING_ORDER]:m.cat==='hotels
 const photoBanner=(m,cls='',i=0)=>{
   const set = PHOTO_SET(m);
   if(set){
-    const[photos,order]=set, src=photos[order[i%order.length]];
+    const[photos,order]=set;
+    // No pizza-specific photo in this mock set. Pin Pizza Lab to the same
+    // frame Brick & Basil (the other pizza venue) opens on, instead of a
+    // generic restaurant interior that reads as any dining venue.
+    const src = m.id==='pizzalab' ? photos[order[0]] : photos[order[i%order.length]];
     return `<div class="cbanner ${cls} photo" style="background-image:url('${src}')" aria-hidden="true"></div>`;
   }
   const[dk,lt]=paletteFor(m.id);
@@ -633,7 +655,8 @@ const photoGallery=(m,i)=>{
   const set = PHOTO_SET(m);
   if(!set) return photoBanner(m,'',i);
   const[photos,order]=set;
-  const slides=[0,1,2,3].map(k=>photos[order[(i+k)%order.length]]);
+  const start = m.id==='pizzalab' ? 0 : i;
+  const slides=[0,1,2,3].map(k=>photos[order[(start+k)%order.length]]);
   return `<div class="pgal">
     <div class="pgal-track">${slides.map(src=>`<div class="pgal-slide" style="background-image:url('${src}')"></div>`).join('')}</div>
     <div class="pgal-dots">${slides.map((_,k)=>`<span class="pgal-dot ${k===0?'on':''}"></span>`).join('')}</div>
@@ -734,8 +757,24 @@ function compute(applyFilters=true){
     rows.push({m,s:r.s,fix:r.fix,outs:outs.sort((a,b)=>a.km-b.km)});
   }
   const strong=rows.some(x=>x.s>=60);
-  if(strong) rows=rows.filter(x=>x.s>=60||x.s===10);
-  else {
+  let related=[];
+  if(strong){
+    // A real catalog has niche cuisines and thin coverage in smaller emirates.
+    // "Scored below cutoff" isn't the same as "scored at all": a cuisine-only
+    // query like "pizza" never scores an unrelated dining merchant in the
+    // first place (scoreText returns null, not a low number) — there's no
+    // weak tier to fall back to. So "Related nearby" is built from the
+    // catalog directly: same category, not already a strict match, same
+    // scope. That's the actual fallback a thin real catalog needs.
+    const topCat=rows.find(x=>x.s>=60).m.cat;
+    const strictIds=new Set(rows.filter(x=>x.s>=60).map(x=>x.m.id));
+    related=M.filter(m=>m.cat===topCat&&!strictIds.has(m.id)).map(m=>{
+      let outs=m.out.map(k=>({k,...AREA[k]}));
+      if(p.loc) outs=outs.filter(o=>inLoc(o,p.loc));
+      return outs.length?{m,s:0,outs:outs.sort((a,b)=>a.km-b.km)}:null;
+    }).filter(Boolean);
+    rows=rows.filter(x=>x.s>=60||x.s===10);
+  } else {
     // prefer a shared tag/category correction (e.g. "Sushi") over one merchant's own
     // name just because it happened to match first. A name-prefix fix (s===45) only
     // tells you about that one merchant, not what the whole result set has in common.
@@ -746,12 +785,17 @@ function compute(applyFilters=true){
   // x.near drives ranking (always the true nearest in-scope outlet, so picking a
   // different branch to display never reshuffles the list). x.shown is what the
   // card and map pin actually display, overridden when a specific outlet is picked.
-  rows.forEach(x=>{ x.inOuts=x.outs.filter(inScope); x.near=x.inOuts[0]||x.outs[0];
-    const picked=S.outletSel[x.m.id]; x.shown=(picked&&x.outs.find(o=>o.k===picked))||x.near; });
+  const prep=arr=>{ arr.forEach(x=>{ x.inOuts=x.outs.filter(inScope); x.near=x.inOuts[0]||x.outs[0];
+    const picked=S.outletSel[x.m.id]; x.shown=(picked&&x.outs.find(o=>o.k===picked))||x.near; }); return arr; };
+  prep(rows); prep(related);
   if(applyFilters) rows=rows.filter(x=>(!S.rating||x.m.rating>=4.5)&&(!S.bookable||x.m.reserve==='instant')&&[...S.filters].every(f=>x.m.tags.includes(f)));
   const sorter={relevance:(a,b)=>b.s-a.s||a.near.km-b.near.km,nearest:(a,b)=>a.near.km-b.near.km,rating:(a,b)=>b.m.rating-a.m.rating,newest:(a,b)=>M.indexOf(b.m)-M.indexOf(a.m)}[S.sort];
   rows.sort(sorter);
-  return {p,fix,inS:rows.filter(x=>x.inOuts.length),outS:rows.filter(x=>!x.inOuts.length),rows};
+  // (tunable) related nearby is a fallback, not a competing result set, so it's
+  // capped tight and sorted by proximity rather than by the relevance score it
+  // already failed to clear.
+  related=related.filter(x=>x.inOuts.length).sort((a,b)=>a.near.km-b.near.km).slice(0,5);
+  return {p,fix,inS:rows.filter(x=>x.inOuts.length),outS:rows.filter(x=>!x.inOuts.length),rows,related};
 }
 
 /* ---------------- elements ---------------- */
@@ -812,38 +856,58 @@ function renderSuggest(){
     const label=`${p.text?cap(p.text):CAT[p.cat]} ${p.loc?'in '+p.loc.label:'near you'}`;
     html+=`<button class="sg hero ${a('h:'+label)}" style="--i:${idx++}" data-act="q" data-q="${esc(raw)}"><span class="ic">${ICON.search}</span><span class="t"><div>${esc(label)}</div><small>${res.rows.length} place${res.rows.length===1?'':'s'} · ${res.rows.reduce((s,x)=>s+x.m.offers.length,0)} offers</small></span><span class="arrow">${ICON.arrow}</span></button>`;
   }
-  // merchants (raw name/word matches, catalogue matching). Score against the full typed
-  // text even when it also resolved as a place (qn): "palm" parses to the place Palm
-  // Jumeirah, but Palm Shore Resort's name starts with "palm" too. A literal name match
-  // is a strong enough signal to surface as a venue alongside the place, not get hidden
-  // by it. The s>=80 threshold below still keeps this to real name matches, not every
-  // merchant that merely has an outlet in the resolved place.
-  const names=M.map(m=>{ const r=scoreText(m,p.text||qn); return r&&r.s>=45?{m,r}:null; }).filter(Boolean)
-    .filter(x=>x.r.s>=80||x.r.s===45).sort((x,y)=>y.r.s-x.r.s||Math.min(...x.m.out.map(k=>AREA[k].km))-Math.min(...y.m.out.map(k=>AREA[k].km))).slice(0,4);
-  const buildVenues=()=>names.length?`<div class="sg-group"><div class="sg-label">Venues</div>${names.map(({m})=>{const near=m.out.map(k=>AREA[k]).sort((x,y)=>x.km-y.km)[0];
-      return `<button class="sg ${a('m:'+m.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${m.id}">${logo(m,'sm')}<span class="t"><div>${hl(m.name,fold(p.text||qn))}</div><small>${m.tags[0]} · ${esc(near.name)} · ${fmtKm(near.km)}${m.out.length>1?` · ${m.out.length} outlets`:''}</small></span><span class="tail">${aed(m.save)}</span></button>`}).join('')}</div>`:'';
-  // tags / cuisines (resolved intent, what the query means, not just what it spells)
-  const t=p.text; const tagCounts={};
-  if(t){ M.forEach(m=>m.tags.forEach(tg=>{ const n=norm(tg); if(n.startsWith(t)||n.split(' ').some(w=>w.startsWith(t))||(SYN[t]===n)) tagCounts[tg]=(tagCounts[tg]||[]).concat(m.cat); })); }
-  const tags=Object.entries(tagCounts).sort((x,y)=>y[1].length-x[1].length).slice(0,3);
-  const buildTags=()=>tags.length?`<div class="sg-group"><div class="sg-label">Cuisines & types</div>${tags.map(([tg,cats])=>{const c=cats[0];
-      return `<button class="sg ${a('t:'+tg)}" style="--i:${idx++}" data-act="q" data-q="${esc(tg+(p.loc?' in '+p.loc.label:''))}"><span class="ic emoji">${TAG_EMOJI[tg]||CAT_EMOJI[c]}</span><span class="t"><div>${hl(tg,t)}${p.loc?` <span style="color:var(--muted)">in ${esc(p.loc.label)}</span>`:''}</div><small>${CAT[c]} · ${cats.length} place${cats.length>1?'s':''}</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`:'';
-  // a short prefix is ambiguous ("pi" → PIMS? Pickl? pizza?). Lead with what it resolves
-  // to rather than whatever happens to match letter-for-letter, so intent wins over spelling.
-  html += (t && t.length<=2 && tags.length) ? buildTags()+buildVenues() : buildVenues()+buildTags();
-  // places, prefix-matched live, same as venues and cuisines above, so a place name
-  // isn't invisible until typed in full. Previously gated on "no leftover text", which
-  // meant a prefix that could plausibly be a venue/cuisine (like "ju") suggested nothing
-  // at all instead of surfacing the place it could also become (Jumeirah).
-  const places=LOCS.filter(l=>l.aliases.some(al=>al.startsWith(qn)||(' '+al).includes(' '+qn))&&qn.length>=2).slice(0,3);
-  if(places.length){
+  // Ambiguity-safe autocomplete. Every candidate — a cuisine/type, a top-level
+  // category, a multi-outlet brand, or a single-outlet venue — is labeled with
+  // what it is, so the user resolves ambiguity by reading a row instead of the
+  // system guessing one. Ranked in one flat list, not grouped sections:
+  //   1. an exact full-name match is pinned above everything, as "Go to {name}"
+  //   2. word-start matches (query matches the start of the name/word) rank
+  //      above mid-word matches (query matches only inside a word)
+  //   3. within equal match quality: category, then brand, then venue, then
+  //      catalog popularity
+  // Popularity here is just rating — a stand-in. Production would rank by
+  // aggregate prefix-to-selection data (what people who typed this prefix
+  // actually tapped), which is behavioral signal, not personalization.
+  const q=p.text||qn;
+  const mQual=(text)=>{ const n=norm(text); if(!n.includes(q)) return 0; return wordStart(text,q)?2:1; };
+  const exactM=q.length>=2?M.find(m=>norm(m.name)===q):null;
+  let pinRow='';
+  if(exactM){
+    const nearE=exactM.out.map(k=>AREA[k]).sort((x,y)=>x.km-y.km)[0];
+    pinRow=`<button class="sg hero ${a('exact:'+exactM.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${exactM.id}">${logo(exactM,'sm')}<span class="t"><div>Go to ${esc(exactM.name)}</div><small>${esc(exactM.tags[0])} · ${farCountry(nearE)?esc(nearE.country):esc(nearE.name)}</small></span><span class="arrow">${ICON.arrow}</span></button>`;
+  }
+  const catCand={};
+  if(q.length>=2){
+    M.forEach(m=>m.tags.forEach(tg=>{ const qlt=mQual(tg); if(qlt){ const e=catCand[tg]||{qlt:0,n:0,cats:new Set()}; e.qlt=Math.max(e.qlt,qlt); e.n++; e.cats.add(m.cat); catCand[tg]=e; } }));
+    Object.keys(CAT).forEach(c=>{ const qlt=mQual(CAT[c]); if(qlt){ const n=M.filter(m=>m.cat===c).length; catCand[CAT[c]]={qlt,n,cats:new Set([c]),isTop:true}; } });
+  }
+  const catRows=Object.entries(catCand).map(([label,v])=>({type:'cat',qlt:v.qlt,pop:v.n,label,cat:[...v.cats][0],n:v.n,isTop:v.isTop}));
+  const merchCand=q.length>=2?M.filter(m=>m!==exactM).map(m=>{ const qlt=mQual(m.name); if(!qlt) return null; return {type:m.out.length>=2?'brand':'venue',qlt,pop:m.rating,m}; }).filter(Boolean):[];
+  const typeRank={cat:0,brand:1,venue:2};
+  const byRank=(x,y)=>y.qlt-x.qlt||typeRank[x.type]-typeRank[y.type]||y.pop-x.pop;
+  const catsPicked=catRows.sort(byRank).slice(0,2);
+  let slots=6-catsPicked.length;
+  const venuePool=merchCand.filter(r=>r.type==='venue').sort(byRank);
+  const brandPool=merchCand.filter(r=>r.type==='brand').sort(byRank);
+  const venueReserve=Math.min(3,venuePool.length,slots);
+  const venuesPicked=venuePool.slice(0,venueReserve);
+  slots-=venuesPicked.length;
+  const leftover=[...brandPool,...venuePool.slice(venueReserve)].sort(byRank).slice(0,slots);
+  const picked=[...catsPicked,...venuesPicked,...leftover].sort(byRank);
+  const rowsHtml=picked.map(r=>{
+    if(r.type==='cat') return `<button class="sg ${a('cat:'+r.label)}" style="--i:${idx++}" data-act="q" data-q="${esc(r.isTop?r.label:(r.label+(p.loc?' in '+p.loc.label:'')))}"><span class="ic emoji">${TAG_EMOJI[r.label]||CAT_EMOJI[r.cat]}</span><span class="t"><div>${hl(r.label,q)}</div><small>Category · ${r.n} place${r.n>1?'s':''}</small></span><span class="arrow">${ICON.arrow}</span></button>`;
+    const m=r.m, near=m.out.map(k=>AREA[k]).sort((x,y)=>x.km-y.km)[0];
+    if(r.type==='brand') return `<button class="sg ${a('b:'+m.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${m.id}">${logo(m,'sm')}<span class="t"><div>${hl(m.name,q)}</div><small>Brand · ${m.out.length} outlets</small></span><span class="arrow">${ICON.arrow}</span></button>`;
+    return `<button class="sg ${a('v:'+m.id)}" style="--i:${idx++}" data-act="sugg-m" data-id="${m.id}">${logo(m,'sm')}<span class="t"><div>${hl(m.name,q)}</div><small>${esc(m.tags[0])} · ${farCountry(near)?esc(near.country):esc(near.name)}</small></span><span class="arrow">${ICON.arrow}</span></button>`;
+  }).join('');
+  html+=pinRow+rowsHtml;
+  // places, prefix-matched live, so a place name isn't invisible until typed
+  // in full. Not one of the three labeled row types above (a place isn't a
+  // category, a brand or a venue), so it stays a separate, smaller group.
+  const places=LOCS.filter(l=>l.aliases.some(al=>al.startsWith(qn)||(' '+al).includes(' '+qn))&&qn.length>=2).slice(0,2);
+  if(places.length && picked.length+(pinRow?1:0)<6){
     html+=`<div class="sg-group"><div class="sg-label">Places</div>${places.map(l=>{const n=M.filter(m=>m.out.some(k=>inLoc({k,...AREA[k]},l))).length; const far=needScope(l);
       return `<button class="sg ${a('p:'+l.key)}" style="--i:${idx++}" data-act="q" data-q="${esc(l.label)}"><span class="ic">${far==='world'?ICON.plane:ICON.pin}</span><span class="t"><div>${hl(l.label,qn)}</div><small>${l.city?(far==='world'?'Worldwide':'Emirate'):'Area in Dubai'} · ${n} places with offers</small></span><span class="arrow">${ICON.arrow}</span></button>`}).join('')}</div>`;
-  }
-  // categories
-  const catHit=Object.keys(CAT).filter(c=>CAT[c].toLowerCase().startsWith(qn));
-  if(catHit.length){
-    html+=`<div class="sg-group"><div class="sg-label">Categories</div>${catHit.map(c=>`<button class="sg ${a('c:'+c)}" style="--i:${idx++}" data-act="q" data-q="${CAT[c]}"><span class="ic emoji">${CAT_EMOJI[c]}</span><span class="t"><div>${hl(CAT[c],qn)}</div><small>Everything in ${CAT[c].toLowerCase()}</small></span><span class="arrow">${ICON.arrow}</span></button>`).join('')}</div>`;
   }
   if(!html){
     if(res.fix){
@@ -881,7 +945,7 @@ function submit(q,opts={}){
   S.lastCount=null;
   setMode('results');
   showSkeleton();
-  setTimeout(()=>{ renderResults(true); if(toastMsg) toast(toastMsg,3600); },420);
+  setTimeout(()=>{ renderResults(true); },420);
 }
 function showSkeleton(){
   renderHeaderRes(compute());
@@ -913,6 +977,9 @@ function card(x,i,p,opts={}){
   const flag=m.reserve==='instant'?`<span class="dot">·</span><b class="f-live">Live booking</b>`
     :m.reserve==='call'?`<span class="dot">·</span><b class="f-call">Call ahead</b>`:'';
   const moreBtn=moreN>0&&!opts.compact?`<button class="cmore" data-act="locs" data-id="${m.id}">${moreN} more outlet${moreN>1?'s':''} ${ICON.chev}</button>`:'';
+  const ostate=m.offers[0][3];
+  const badgeTxt=ostate==='locked'?'Not in your plan':ostate==='used'?'Used this year':esc(m.offers[0][0]);
+  const badgeCls=ostate&&ostate!=='available'?'cbadge state':'cbadge';
 
   // Every result reads the same way: a photo banner, name, rating, offer,
   // distance. Rank is the signal. The best result is simply first, the way
@@ -922,13 +989,13 @@ function card(x,i,p,opts={}){
     <div class="card-main" role="button" tabindex="0" data-act="open" data-id="${m.id}" aria-label="${esc(m.name)}">
       <div class="banner-wrap">
         ${photoGallery(m,i)}
-        <span class="cbadge">${esc(m.offers[0][0])}</span>
+        <span class="${badgeCls}">${badgeTxt}</span>
         <button class="heart ${S.saved.has(m.id)?'on':''}" data-act="heart" data-id="${m.id}" aria-label="Save ${esc(m.name)}">${ICON.heart}</button>
       </div>
       <div class="info">
         <div class="nm-row"><div class="nm">${hl(m.name,fold(p.text))}</div><span class="crate"><span class="rate-ic">😁</span><b>${m.rating}</b></span></div>
         <div class="cline1"><span class="c1-main"><b>${esc(m.offers[0][1])}</b><span class="dot">·</span>Save ${aed(m.save)}</span>${flag}</div>
-        <div class="cline2"><span class="cline2-txt">${fmtKm(near.km)}<span class="dot">·</span>${esc(near.name)}</span>${moreBtn}</div>
+        <div class="cline2"><span class="cline2-txt">${locLine(near)}</span>${moreBtn}</div>
       </div>
     </div>
   </article>`;
@@ -938,7 +1005,7 @@ function card(x,i,p,opts={}){
       ${photoBanner(m,'',i)}
       <div class="info">
         <div class="nm">${hl(m.name,fold(p.text))}</div>
-        <div class="cmeta">${esc(m.tags[0])}<span class="dot">·</span>${fmtKm(near.km)}<span class="dot">·</span><b>${esc(near.name)}</b>${flag}</div>
+        <div class="cmeta">${esc(m.tags[0])}<span class="dot">·</span>${farCountry(near)?`<b>${esc(near.name)}</b>, ${esc(near.country)}`:`${fmtKm(near.km)}<span class="dot">·</span><b>${esc(near.name)}</b>`}${flag}</div>
         <div class="coffer"><b>${esc(m.offers[0][0])} · ${esc(m.offers[0][1])}</b><span class="csave">Save ${aed(m.save)}</span></div>
       </div>
     </div>
@@ -947,30 +1014,69 @@ function card(x,i,p,opts={}){
   </article>`;
 }
 
+// A query that reads as both a category and a merchant name is genuinely
+// ambiguous, not resolvable by picking a winner. Exact matches to either
+// aren't ambiguous (the user meant that one thing), so they fall through to
+// the normal results page.
+const wordStart=(text,q)=>{ const n=norm(text); return n.startsWith(q)||n.split(' ').some(w=>w.startsWith(q)); };
+function ambiguousPrefix(q){
+  if(!q||q.length<2) return false;
+  const exact=M.some(m=>norm(m.name)===q)||M.some(m=>m.tags.some(tg=>norm(tg)===q));
+  if(exact) return false;
+  const tagHit=M.some(m=>m.tags.some(tg=>wordStart(tg,q)));
+  const nameHit=M.some(m=>wordStart(m.name,q));
+  return tagHit&&nameHit;
+}
+function renderAmbiguous(q,animate){
+  const matchedTag=(()=>{ for(const m of M) for(const tg of m.tags) if(wordStart(tg,q)) return tg; return null; })();
+  const build=(m)=>{ const outs=m.out.map(k=>({k,...AREA[k]})).sort((a,b)=>a.km-b.km); const inOuts=outs.filter(inScope);
+    return {m,outs,inOuts,near:inOuts[0]||outs[0],shown:inOuts[0]||outs[0]}; };
+  const catMerchants=M.filter(m=>m.tags.includes(matchedTag)).map(build).filter(x=>x.inOuts.length);
+  const nameMerchants=M.filter(m=>!m.tags.includes(matchedTag)&&wordStart(m.name,q)).map(build).filter(x=>x.inOuts.length);
+  const p=parse(S.q);
+  let html=`<div class="sec"><div class="sec-h"><h3>${esc(cap(matchedTag))} places</h3><span style="color:var(--muted);font-size:13px">${catMerchants.length}</span></div>
+    <div class="list">${catMerchants.map((x,i)=>card(x,i,p,{noAnim:!animate})).join('')}</div></div>`;
+  if(nameMerchants.length) html+=`<div class="sg-group" style="margin-top:22px"><div class="sg-label">Places matching &ldquo;${esc(S.q)}&rdquo; · ${nameMerchants.length}</div>${nameMerchants.map(relatedRow).join('')}</div>`;
+  content.innerHTML=`<div class="view ${animate?'enter':''}">${html}</div>`;
+}
+function relatedRow(x){
+  return `<button class="sg" data-act="open" data-id="${x.m.id}">${logo(x.m,'sm')}<span class="t"><div>${esc(x.m.name)}</div><small>${esc(x.m.tags[0])} · ${farCountry(x.near)?esc(x.near.country):fmtKm(x.near.km)}</small></span><span class="tail">${aed(x.m.save)}</span></button>`;
+}
 function renderResults(animate){
   const r=compute(); renderHeaderRes(r);
   const p=r.p;
   const byTab=x=>S.tab==='all'||x.m.cat===S.tab;
-  const list=r.inS.filter(byTab), outside=r.outS.filter(byTab);
+  const list=r.inS.filter(byTab), outside=r.outS.filter(byTab), related=r.related.filter(byTab);
   $('#mapBtn').innerHTML=S.view==='map'?ICON.list:ICON.map;
   if(S.view==='map'){ renderMap(list,outside,p); return; }
+  if(ambiguousPrefix(p.text)){ renderAmbiguous(p.text,animate); return; }
 
   let html='';
+  // A named far place widens scope before the search even runs (submit() sets
+  // this); say so inline, directly under the filter row, instead of a toast
+  // that can float over other UI. Consumed once so it doesn't reappear on the
+  // next unrelated re-render (a filter toggle, an outlet pick).
+  if(toastMsg){ html+=`<div class="banner">${toastMsg}</div>`; toastMsg=null; }
   const offers=list.reduce((s,x)=>s+x.m.offers.length,0);
   const bump = S.lastCount!==null && S.lastCount!==list.length;
   html+=`<div class="meta"><span><b class="${bump?'bump':''}">${list.length}</b> place${list.length===1?'':'s'} · ${offers} offers <button class="scopenote" data-act="scope">${SCOPE_INLINE[S.scope]}</button></span><span>${SORTS[S.sort]}</span></div>`;
   S.lastCount=list.length;
   if(r.fix && !r.rows.some(x=>x.s>=60)) html+=`<div class="banner">${ICON.info}<span>Showing results for <b>${esc(r.fix)}</b>. No exact matches for “${esc(p.text)}”.</span></div>`;
-  if(!list.length && outside.length){
+  if(list.length) html+=`<div class="list">${list.map((x,i)=>card(x,i,p,{noAnim:!animate})).join('')}</div>`;
+  // Fallback order: related nearby, then a wider area, then an empty state.
+  // Related nearby fires even on a full miss (list.length 0), ahead of
+  // widening scope, per T2 — it's cheaper than asking the user to search
+  // further away for something that's not even a strong match yet.
+  if(related.length && list.length<5) html+=`<div class="sg-group" style="margin-top:22px"><div class="sg-label">Related nearby</div>${related.map(relatedRow).join('')}</div>`;
+  if(!list.length && !related.length && outside.length){
     html+=`<div class="banner">${ICON.info}<span>Nothing in ${SCOPE[S.scope]==='Near me'?'your area':SCOPE[S.scope]} for “${esc(S.q)}”. Here ${outside.length===1?'is the match':`are ${outside.length} matches`} further away.</span></div>`;
     S.showOutside=true;
   }
-  if(list.length) html+=`<div class="list">${list.map((x,i)=>card(x,i,p,{noAnim:!animate})).join('')}</div>`;
   if(outside.length){
     if(list.length) html+=`<button class="outside-btn ${S.showOutside?'open':''}" data-act="outside"><span>${outsideLabel()} · ${outside.length} more ${ICON.chev}</span></button>`;
     html+=`<div class="collapse ${S.showOutside?'':'shut'}"><div><div class="list">${outside.map((x,i)=>card(x,i,p,{noAnim:true})).join('')}</div></div></div>`;
   }
-  if(!list.length && !outside.length){
+  if(!list.length && !related.length && !outside.length){
     const wider = rank(S.scope)<3 ? `<button class="primary" data-act="setscope" data-v="world">${ICON.globe}Search worldwide</button>`:'';
     const hasFilters = S.rating||S.bookable||S.filters.size;
     html+=`<div class="empty anim"><div class="big">${ICON.search.replace('width="18" height="18"','width="34" height="34"')}</div>
@@ -1032,9 +1138,10 @@ function openMerchant(id){
   openSheet(`
     <div class="sh-head">${logo(m)}<div style="min-width:0"><h2>${esc(m.name)}</h2><p><span class="rate-ic">😁</span> ${m.rating} · ${m.tags.join(' · ')}</p><p>${esc(m.price)}</p></div></div>
     <div class="savebig"><div><small>Save up to</small><b>AED <span id="countup">0</span></b></div><span class="tag">${m.offers.length} offer${m.offers.length>1?'s':''}</span></div>
-    <div class="sh-sec"><h4>Offers</h4>${m.offers.map(([b,t,s],i)=>`<div class="offer-row anim" style="--i:${i+1}"><span class="badge">${esc(b)}</span><span class="t"><b>${esc(t)}</b><small>${esc(s)}</small></span></div>`).join('')}
+    <div class="sh-sec"><h4>Offers</h4>${m.offers.map(([b,t,s,state],i)=>{ const line=state==='locked'?'Not included in your current plan.':state==='used'?'Already redeemed this year.':s;
+      return `<div class="offer-row anim ${state&&state!=='available'?'dim':''}" style="--i:${i+1}"><span class="badge">${esc(b)}</span><span class="t"><b>${esc(t)}</b><small>${esc(line)}</small></span></div>`; }).join('')}
       <p style="margin:2px 0 0;font-size:12px;color:var(--muted)">${m.offers.some(o=>o[0]==='Buy 1 Get 1')?'Buy 1 Get 1 Free needs 2+ guests to redeem. Groups of 8+ can use up to 4 offers in one visit.':'Offers are valid at every location below.'}</p></div>
-    <div class="sh-sec"><h4>${outs.length} location${outs.length>1?'s':''}</h4>${outs.map(o=>`<div class="loc-row ${p.loc&&inLoc(o,p.loc)?'hit':''}"><span style="color:var(--muted)">${ICON.pin}</span><span class="t"><span>${esc(o.name)}</span><small>${esc(o.city)}${o===near?' · Nearest to you':''}</small></span><span class="k">${fmtKm(o.km)}</span><button class="dir" data-act="toast" data-msg="Opens directions in Maps">Directions</button></div>`).join('')}</div>
+    <div class="sh-sec"><h4>${outs.length} location${outs.length>1?'s':''}</h4>${outs.map(o=>`<div class="loc-row ${p.loc&&inLoc(o,p.loc)?'hit':''}"><span style="color:var(--muted)">${ICON.pin}</span><span class="t"><span>${esc(o.name)}</span><small>${esc(o.city)}${o===near?' · Nearest to you':''}</small></span><span class="k">${farCountry(o)?esc(o.country):fmtKm(o.km)}</span><button class="dir" data-act="toast" data-msg="Opens directions in Maps">Directions</button></div>`).join('')}</div>
     <div class="sh-foot">${m.reserve==='instant'
       ?`<button class="primary" data-act="toast" data-msg="Opens live rates for your dates">Check live availability</button><p>One of the few places with real-time booking in the app</p>`
       :m.reserve==='call'
@@ -1049,7 +1156,7 @@ function openOutlets(id){
   const outs=m.out.map(k=>({k,...AREA[k]})).sort((a,b)=>a.km-b.km);
   const picked=S.outletSel[id];
   openSheet(`<div class="sheet-title">${esc(m.name)}</div>
-    <div class="sh-sec">${outs.map(o=>`<button class="outlet ${inScope(o)?'':'dim'} ${o.k===(picked||outs[0].k)?'on':''}" data-act="pickoutlet" data-id="${id}" data-k="${o.k}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${fmtKm(o.km)}</span></button>`).join('')}</div>
+    <div class="sh-sec">${outs.map(o=>`<button class="outlet ${inScope(o)?'':'dim'} ${o.k===(picked||outs[0].k)?'on':''}" data-act="pickoutlet" data-id="${id}" data-k="${o.k}">${ICON.pin}<span class="o-n">${esc(o.name)}</span>${inScope(o)?'':`<span class="o-tag">${esc(o.city)}</span>`}<span class="o-k">${farCountry(o)?esc(o.country):fmtKm(o.km)}</span></button>`).join('')}</div>
     <button class="outlet" data-act="view"><span style="color:var(--muted);display:flex">${ICON.map.replace('width="22" height="22"','width="14" height="14"')}</span><span class="o-n">View all ${outs.length} on map</span><span class="o-arrow">${ICON.arrow}</span></button>`);
 }
 function openScope(){
