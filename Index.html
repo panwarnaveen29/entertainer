@@ -95,7 +95,7 @@ mark{background:none;color:var(--ink);font-weight:700}
 .screen[data-mode="results"] .res-only{display:flex}
 .filters::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
 .token .ti{opacity:.7;font-weight:500}
-.filters{gap:8px;padding:10px 16px 10px;margin:0 -16px;overflow-x:auto;scrollbar-width:none}
+.filters{gap:8px;padding:10px 16px;overflow-x:auto;scrollbar-width:none}
 .fchip{flex:none;height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;font-weight:500;color:var(--ink-2);transition:background .2s,border-color .2s,color .2s,transform .12s}
 .fchip:active{transform:scale(.95)}
 .fchip.on{background:var(--blue-soft);border-color:var(--blue-line);color:var(--blue-ink)}
@@ -454,10 +454,10 @@ mark{background:none;color:var(--ink);font-weight:700}
           <button class="icon-btn mapbtn" id="mapBtn" data-act="view" aria-label="Map view"></button>
           <button class="cancel" data-act="cancel">Cancel</button>
         </div>
-        <div class="filters res-only" id="filters"></div>
         <div class="tabs res-only" id="tabs"></div>
       </header>
       </div>
+      <div class="filters res-only" id="filters"></div>
 
       <main class="content" id="content"></main>
 
